@@ -115,7 +115,7 @@ void setup() {
   dht.begin();  // Iniciar el sensor DHT
 
   pinMode(LED_BUILTIN, OUTPUT);  // Definir el pin del LED como salida
-  digitalWrite(LED_BUILTIN, HIGH);  // Apagar el LED por defecto
+  digitalWrite(LED_BUILTIN, LOW);  // Apagar el LED por defecto
 
   espClient.setInsecure();
   client.setServer(mqtt_server, 8883);
