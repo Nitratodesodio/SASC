@@ -456,16 +456,17 @@ class SalaDAO:
     def insert(self, sala):
         cursor = self.connection.cursor()
         cursor.execute(
-            "INSERT INTO sala (numero, cod_edificio, cod_sede, cod_controlador) "
-            "VALUES (%s, %s, %s, %s) RETURNING cod_sala",
-            (sala.numero, sala.cod_edificio, sala.cod_sede, sala.cod_controlador)
+            "INSERT INTO sala (numero, cod_edificio, cod_sede, cod_controlador, cod_cap, cod_ori, cod_vol) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING cod_sala",
+            (sala.numero, sala.cod_edificio, sala.cod_sede, sala.cod_controlador, sala.cod_cap, sala.cod_ori, sala.cod_vol)
         )
         sala.cod_sala = cursor.fetchone()[0]
         self.connection.commit()
 
     def get_by_id(self, cod_sala):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sala, numero, cod_edificio, cod_sede, cod_controlador FROM sala WHERE cod_sala = %s", (cod_sala,))
+        cursor.execute("SELECT cod_sala, numero, cod_edificio, cod_sede, cod_controlador, cod_cap, cod_ori, cod_vol "
+                       "FROM sala WHERE cod_sala = %s", (cod_sala,))
         row = cursor.fetchone()
         if row:
             return SalaDTO(*row)
@@ -473,16 +474,16 @@ class SalaDAO:
 
     def get_all(self):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sala, numero, cod_edificio, cod_sede, cod_controlador FROM sala")
+        cursor.execute("SELECT cod_sala, numero, cod_edificio, cod_sede, cod_controlador, cod_cap, cod_ori, cod_vol FROM sala")
         rows = cursor.fetchall()
         return [SalaDTO(*row) for row in rows]
 
     def update(self, sala):
         cursor = self.connection.cursor()
         cursor.execute(
-            "UPDATE sala SET numero = %s, cod_edificio = %s, cod_sede = %s, cod_controlador = %s "
+            "UPDATE sala SET numero = %s, cod_edificio = %s, cod_sede = %s, cod_controlador = %s, cod_cap = %s, cod_ori = %s, cod_vol = %s "
             "WHERE cod_sala = %s",
-            (sala.numero, sala.cod_edificio, sala.cod_sede, sala.cod_controlador, sala.cod_sala)
+            (sala.numero, sala.cod_edificio, sala.cod_sede, sala.cod_controlador, sala.cod_cap, sala.cod_ori, sala.cod_vol, sala.cod_sala)
         )
         self.connection.commit()
 
@@ -524,43 +525,6 @@ class VolumenDAO:
     def delete(self, cod_vol):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM volumen WHERE cod_vol = %s", (cod_vol,))
-        self.connection.commit()
-
-
-class SalaVolDAO:
-    def __init__(self, connection):
-        self.connection = connection
-
-    def insert(self, sala_vol):
-        cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO sala_vol (cod_sala, cod_vol) VALUES (%s, %s) RETURNING cod_salvol", 
-                       (sala_vol.cod_sala, sala_vol.cod_vol))
-        sala_vol.cod_salvol = cursor.fetchone()[0]
-        self.connection.commit()
-
-    def get_by_id(self, cod_salvol):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_salvol, cod_sala, cod_vol FROM sala_vol WHERE cod_salvol = %s", (cod_salvol,))
-        row = cursor.fetchone()
-        if row:
-            return SalaVolDTO(*row)
-        return None
-
-    def get_all(self):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_salvol, cod_sala, cod_vol FROM sala_vol")
-        rows = cursor.fetchall()
-        return [SalaVolDTO(*row) for row in rows]
-
-    def update(self, sala_vol):
-        cursor = self.connection.cursor()
-        cursor.execute("UPDATE sala_vol SET cod_sala = %s, cod_vol = %s WHERE cod_salvol = %s", 
-                       (sala_vol.cod_sala, sala_vol.cod_vol, sala_vol.cod_salvol))
-        self.connection.commit()
-
-    def delete(self, cod_salvol):
-        cursor = self.connection.cursor()
-        cursor.execute("DELETE FROM sala_vol WHERE cod_salvol = %s", (cod_salvol,))
         self.connection.commit()
 
 
@@ -633,43 +597,6 @@ class CapacidadDAO:
     def delete(self, cod_cap):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM capacidad WHERE cod_cap = %s", (cod_cap,))
-        self.connection.commit()
-
-
-class SalaCapDAO:
-    def __init__(self, connection):
-        self.connection = connection
-
-    def insert(self, sala_cap):
-        cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO sala_cap (cod_sala, cod_cap) VALUES (%s, %s) RETURNING cod_sal_cap", 
-                       (sala_cap.cod_sala, sala_cap.cod_cap))
-        sala_cap.cod_sal_cap = cursor.fetchone()[0]
-        self.connection.commit()
-
-    def get_by_id(self, cod_sal_cap):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sal_cap, cod_sala, cod_cap FROM sala_cap WHERE cod_sal_cap = %s", (cod_sal_cap,))
-        row = cursor.fetchone()
-        if row:
-            return SalaCapDTO(*row)
-        return None
-
-    def get_all(self):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sal_cap, cod_sala, cod_cap FROM sala_cap")
-        rows = cursor.fetchall()
-        return [SalaCapDTO(*row) for row in rows]
-
-    def update(self, sala_cap):
-        cursor = self.connection.cursor()
-        cursor.execute("UPDATE sala_cap SET cod_sala = %s, cod_cap = %s WHERE cod_sal_cap = %s", 
-                       (sala_cap.cod_sala, sala_cap.cod_cap, sala_cap.cod_sal_cap))
-        self.connection.commit()
-
-    def delete(self, cod_sal_cap):
-        cursor = self.connection.cursor()
-        cursor.execute("DELETE FROM sala_cap WHERE cod_sal_cap = %s", (cod_sal_cap,))
         self.connection.commit()
 
 
@@ -962,42 +889,6 @@ class SeccionDAO:
     def delete(self, cod_sec):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM seccion WHERE cod_sec = %s", (cod_sec,))
-        self.connection.commit()
-
-
-class TipoSubseccionDAO:
-    def __init__(self, connection):
-        self.connection = connection
-
-    def insert(self, tipo_subseccion):
-        cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO tipo_subseccion (nombre) VALUES (%s) RETURNING cod_tipo_su", (tipo_subseccion.nombre,))
-        tipo_subseccion.cod_tipo_su = cursor.fetchone()[0]
-        self.connection.commit()
-
-    def get_by_id(self, cod_tipo_su):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_tipo_su, nombre FROM tipo_subseccion WHERE cod_tipo_su = %s", (cod_tipo_su,))
-        row = cursor.fetchone()
-        if row:
-            return TipoSubseccionDTO(*row)
-        return None
-
-    def get_all(self):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_tipo_su, nombre FROM tipo_subseccion")
-        rows = cursor.fetchall()
-        return [TipoSubseccionDTO(*row) for row in rows]
-
-    def update(self, tipo_subseccion):
-        cursor = self.connection.cursor()
-        cursor.execute("UPDATE tipo_subseccion SET nombre = %s WHERE cod_tipo_su = %s", 
-                       (tipo_subseccion.nombre, tipo_subseccion.cod_tipo_su))
-        self.connection.commit()
-
-    def delete(self, cod_tipo_su):
-        cursor = self.connection.cursor()
-        cursor.execute("DELETE FROM tipo_subseccion WHERE cod_tipo_su = %s", (cod_tipo_su,))
         self.connection.commit()
 
 
