@@ -106,13 +106,6 @@ class VolumenDTO:
         self.volumen = volumen
 
 
-class SalaVolDTO:
-    def __init__(self, cod_salvol, cod_sala, cod_vol):
-        self.cod_salvol = cod_salvol
-        self.cod_sala = cod_sala
-        self.cod_vol = cod_vol
-
-
 class OrientacionDTO:
     def __init__(self, cod_ori, orientacion):
         self.cod_ori = cod_ori
@@ -124,13 +117,6 @@ class CapacidadDTO:
         self.cod_cap = cod_cap
         self.cupo_estandar = cupo_estandar
         self.cupo_permitido = cupo_permitido
-
-
-class SalaCapDTO:
-    def __init__(self, cod_sal_cap, cod_sala, cod_cap):
-        self.cod_sal_cap = cod_sal_cap
-        self.cod_sala = cod_sala
-        self.cod_cap = cod_cap
 
 
 class TipoAcDTO:
@@ -184,12 +170,6 @@ class SeccionDTO:
     def __init__(self, cod_sec, seccion):
         self.cod_sec = cod_sec
         self.seccion = seccion
-
-
-class TipoSubseccionDTO:
-    def __init__(self, cod_tipo_su, nombre):
-        self.cod_tipo_su = cod_tipo_su
-        self.nombre = nombre
 
 
 class SemestreDTO:
