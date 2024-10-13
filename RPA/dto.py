@@ -92,12 +92,15 @@ class LecturaSensorDTO:
 
 
 class SalaDTO:
-    def __init__(self, cod_sala, numero, cod_edificio, cod_sede, cod_controlador):
+    def __init__(self, cod_sala, numero, cod_edificio, cod_sede, cod_controlador, cod_cap, cod_ori, cod_vol):
         self.cod_sala = cod_sala
         self.numero = numero
         self.cod_edificio = cod_edificio
         self.cod_sede = cod_sede
         self.cod_controlador = cod_controlador
+        self.cod_cap = cod_cap
+        self.cod_ori = cod_ori
+        self.cod_vol = cod_vol
 
 
 class VolumenDTO:
