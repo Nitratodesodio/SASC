@@ -252,6 +252,26 @@ create table ac (
 		on delete cascade
 );
 
+create table estado (
+	cod_estado serial,
+	estado varchar (20) not null,
+	primary key (cod_estado),
+	constraint check_estado_estado_ac check (trim(estado) <> '')
+);
+
+create table estado_ac (
+	cod_estado_ac serial,
+	cod_estado int not null,
+	cod_ac int not null,
+	primary key (cod_estado_ac),
+	constraint fk_estado_ac_estado foreign key (cod_estado)
+		references estado (cod_estado)
+		on delete cascade,
+	constraint fk_estado_ac_ac foreign key (cod_ac)
+		references ac (cod_ac)
+		on delete cascade
+);
+
 create table modalidad (
 	cod_mod smallserial,
 	modalidad varchar (20) not null,
@@ -346,3 +366,8 @@ create table clase (
 		references bloque_horario (bloque)
 		on delete cascade
 );
+
+
+
+
+
