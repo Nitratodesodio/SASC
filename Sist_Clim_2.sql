@@ -53,8 +53,6 @@ create table clima (
 create table sede (
 	cod_sede smallserial,
 	nombre varchar (30) not null,
-	cod_zona int not null,
-	cod_ciudad int not null,
 	cod_comuna int not null,
 	primary key (cod_sede),
 	constraint fk_sede_comuna foreign key (cod_comuna)
