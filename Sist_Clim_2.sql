@@ -256,6 +256,7 @@ create table estado (
 	cod_estado serial,
 	estado varchar (20) not null,
 	primary key (cod_estado),
+	constraint unique_estado_estado unique (estado),
 	constraint check_estado_estado_ac check (trim(estado) <> '')
 );
 
