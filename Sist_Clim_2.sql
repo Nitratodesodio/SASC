@@ -152,7 +152,7 @@ create table volumen (
 	volumen decimal (5,2) not null,
 	primary key (cod_vol),
 	constraint unique_volumen_volumen unique (volumen),
-	constraint check_volumen_volumen check (trim(volumen) <> '')
+	constraint check_volumen_volumen check (volumen > 0)
 );
 
 create table orientacion (
@@ -165,8 +165,7 @@ create table orientacion (
 
 create table capacidad (
 	cod_cap serial,
-	cupo_estandar int not null,
-	cupo_permitido int not null,
+	capacidad int not null,
 	primary key (cod_cap)
 );
 
@@ -195,7 +194,7 @@ create table sala (
 		references capacidad (cod_cap)
 		on delete cascade,
 	constraint unique_numero_sala unique (numero),
-	constraint check_numero_sala check (trim(numero) <> '')
+	constraint check_numero_sala check (numero > 0)
 );
 
 create table tipo_ac (
@@ -221,23 +220,11 @@ create table modelo_ac (
 	constraint check_modelo_modelo_ac check (trim(modelo) <> '')
 );
 
-create table btu_tipo (
-	cod_btu_tipo serial,
-	tipo varchar (12) not null,
-	primary key (cod_btu_tipo),
-	constraint unique_tipo_btu_tipo unique (tipo),
-	constraint check_tipo_btu_tipo check (trim(tipo) <> '')
-);
-
 create table btu_ac (
 	cod_btu serial,
 	valor int not null,
-	cod_btu_tipo int not null,
 	primary key (cod_btu),
-	constraint fk_btu_ac_btu_tipo foreign key (cod_btu_tipo)
-		references btu_tipo (cod_btu_tipo)
-		on delete cascade,
-	constraint check_valor_btu_ac check (trim(valor) <> '')
+	constraint check_valor_btu_ac check (valor > 0)
 );
 
 create table ac (
@@ -286,7 +273,7 @@ create table semestre (
 	semestre int not null,
 	primary key (cod_sem),
 	constraint unique_semestre_semestre unique (semestre),
-	constraint check_semestre_semestre check (trim(semestre) <> '')
+	constraint check_semestre_semestre check (semestre > 0)
 );
 
 create table asignatura (
