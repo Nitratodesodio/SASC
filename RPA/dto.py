@@ -58,13 +58,13 @@ class BloqueHorario:
 
 
 class Sala:
-    def __init__(self, cod_sala, cod_edificio, cod_vol, cod_ori, numero, capacidad):
+    def __init__(self, cod_sala, cod_edificio, cod_ori, numero, capacidad, volumen):
         self.cod_sala = cod_sala
         self.cod_edificio = cod_edificio
-        self.cod_vol = cod_vol
         self.cod_ori = cod_ori
         self.numero = numero
         self.capacidad = capacidad
+        self.volumen = volumen
 
 
 class Sede:
@@ -72,3 +72,9 @@ class Sede:
         self.cod_sede = cod_sede
         self.nombre = nombre
         self.cod_comuna = cod_comuna
+
+class Edificio:
+    def __init__(self, cod_edificio, cod_sede, nombre):
+        self.cod_edificio = cod_edificio
+        self.cod_sede = cod_sede
+        self.nombre = nombre
