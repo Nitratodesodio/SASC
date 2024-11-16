@@ -163,20 +163,14 @@ create table orientacion (
 	constraint check_orientacion_orientacion check (trim(orientacion) <> '')
 );
 
-create table capacidad (
-	cod_cap serial,
-	capacidad int not null,
-	primary key (cod_cap)
-);
-
 create table sala (
 	cod_sala bigserial,
-	numero int,
+	numero varchar (6),
+	capacidad int,
 	cod_edificio int not null,
 	cod_controlador int unique,
 	cod_vol int not null,
 	cod_ori int not null,
-	cod_cap int not null,
 	primary key (cod_sala),
 	constraint fk_sala_edificio foreign key (cod_edificio)
 		references edificio (cod_edificio)
@@ -190,11 +184,9 @@ create table sala (
 	constraint fk_sala_orientacion foreign key (cod_ori)
 		references orientacion (cod_ori)
 		on delete cascade,
-	constraint fk_sala_capacidad foreign key (cod_cap)
-		references capacidad (cod_cap)
-		on delete cascade,
 	constraint unique_numero_sala unique (numero),
-	constraint check_numero_sala check (numero > 0)
+	constraint check_numero_sala check (trim(nombre) <> ''),
+	constraint check_capacidad_sala check (capacidad > 0)
 );
 
 create table tipo_ac (
@@ -257,7 +249,7 @@ create table estado (
 	estado varchar (20) not null,
 	primary key (cod_estado),
 	constraint unique_estado_estado unique (estado),
-	constraint check_estado_estado_ac check (trim(estado) <> '')
+	constraint check_estado_estado check (trim(estado) <> '')
 );
 
 create table estado_ac (
