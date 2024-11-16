@@ -182,8 +182,6 @@ create table sala (
 	constraint fk_sala_orientacion foreign key (cod_ori)
 		references orientacion (cod_ori)
 		on delete cascade,
-	constraint unique_numero_sala unique (numero),
-	constraint check_numero_sala check (trim(nombre) <> ''),
 	constraint check_capacidad_sala check (capacidad > 0)
 );
 
