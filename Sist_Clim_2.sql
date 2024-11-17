@@ -17,7 +17,7 @@ create table zona (
 create table ciudad (
 	cod_ciudad UUID DEFAULT uuid_generate_v4() primary key,
 	nombre varchar (50) not null,
-	cod_zona UUID not null,
+	cod_zona UUID,
 	constraint fk_ciudad_zona foreign key (cod_zona)
 		references zona (cod_zona)
 		on delete cascade,
@@ -28,7 +28,7 @@ create table ciudad (
 create table comuna (
 	cod_comuna UUID DEFAULT uuid_generate_v4() primary key,
 	nombre varchar (20) not null,
-	cod_ciudad UUID not null,
+	cod_ciudad UUID,
 	constraint fk_comuna_ciudad foreign key (cod_ciudad)
 		references ciudad (cod_ciudad)
 		on delete cascade,
@@ -41,7 +41,7 @@ create table clima (
 	fecha_hora timestamp not null,
 	temperatura decimal (5,2) not null,
 	humedad decimal (5,2) not null,
-	cod_comuna UUID not null,
+	cod_comuna UUID,
 	constraint fk_clima_comuna foreign key (cod_comuna)
 		references comuna (cod_comuna)
 		on delete cascade
@@ -50,7 +50,7 @@ create table clima (
 create table sede (
 	cod_sede UUID DEFAULT uuid_generate_v4() primary key,
 	nombre varchar (30) not null,
-	cod_comuna UUID not null,
+	cod_comuna UUID,
 	constraint fk_sede_comuna foreign key (cod_comuna)
 		references comuna (cod_comuna)
 		on delete cascade,
@@ -61,7 +61,7 @@ create table sede (
 create table edificio (
 	cod_edificio UUID DEFAULT uuid_generate_v4() primary key,
 	nombre varchar (30) not null,
-	cod_sede UUID not null,
+	cod_sede UUID,
 	constraint fk_edificio_sede foreign key (cod_sede)
 		references sede (cod_sede)
 		on delete cascade,
@@ -75,8 +75,8 @@ create table usuario (
 	nombre varchar (40) not null,
 	usuario varchar (30) unique,
 	password varchar (255) not null,
-	cod_cargo UUID not null,
-	cod_sede UUID not null,
+	cod_cargo UUID,
+	cod_sede UUID,
 	constraint fk_usuario_cargo foreign key (cod_cargo)
 		references cargo (cod_cargo)
 		on delete cascade,
@@ -106,8 +106,8 @@ create table tipo_sensor (
 
 create table sensor (
 	cod_sensor UUID DEFAULT uuid_generate_v4() primary key,
-	cod_tipo_sensor UUID not null,
-	cod_controlador UUID not null,
+	cod_tipo_sensor UUID,
+	cod_controlador UUID,
 	constraint fk_sensor_tipo_sensor foreign key (cod_tipo_sensor)
 		references tipo_sensor (cod_tipo_sensor)
 		on delete cascade,
@@ -118,7 +118,7 @@ create table sensor (
 
 create table lectura (
 	cod_lectura UUID DEFAULT uuid_generate_v4() primary key,
-	cod_sensor UUID not null,
+	cod_sensor UUID,
 	fecha_hora timestamp not null,
 	constraint fk_lectura_sensor foreign key (cod_sensor) 
 		references sensor (cod_sensor)
@@ -127,7 +127,7 @@ create table lectura (
 
 create table valor_lectura (
 	cod_valor UUID DEFAULT uuid_generate_v4() primary key,
-	cod_lectura UUID not null,
+	cod_lectura UUID,
 	valor int not null,
 	constraint fk_valor_lectura_lectura foreign key (cod_lectura) 
 		references lectura (cod_lectura)
@@ -145,10 +145,10 @@ create table sala (
 	cod_sala UUID DEFAULT uuid_generate_v4() primary key,
 	sala varchar(25) not null,
 	capacidad int,
-	cod_edificio UUID not null,
+	cod_edificio UUID,
 	cod_controlador UUID unique,
 	volumen int not null,
-	cod_ori UUID not null,
+	cod_ori UUID,
 	constraint fk_sala_edificio foreign key (cod_edificio)
 		references edificio (cod_edificio)
 		on delete cascade,
@@ -190,11 +190,11 @@ create table btu_ac (
 
 create table ac (
 	cod_ac UUID DEFAULT uuid_generate_v4() primary key,
-	cod_sala UUID not null,
-	cod_tipo UUID not null,
-	cod_marca UUID not null,
-	cod_modelo UUID not null,
-	cod_btu UUID not null,
+	cod_sala UUID,
+	cod_tipo UUID,
+	cod_marca UUID,
+	cod_modelo UUID,
+	cod_btu UUID,
 	constraint fk_ac_sala foreign key (cod_sala)
 		references sala (cod_sala)
 		on delete cascade,
@@ -220,8 +220,8 @@ create table estado (
 
 create table estado_ac (
 	cod_estado_ac UUID DEFAULT uuid_generate_v4() primary key,
-	cod_estado UUID not null,
-	cod_ac UUID not null,
+	cod_estado UUID,
+	cod_ac UUID,
 	constraint fk_estado_ac_estado foreign key (cod_estado)
 		references estado (cod_estado)
 		on delete cascade,
@@ -255,8 +255,8 @@ create table asignatura (
 	cod_asig UUID DEFAULT uuid_generate_v4() primary key,
 	identificador varchar (30) not null,
 	nombre varchar (100) not null,
-	cod_mod UUID not null,
-	cod_sem UUID not null,
+	cod_mod UUID,
+	cod_sem UUID,
 	constraint fk_asignatura_modalidad foreign key (cod_mod)
 		references modalidad (cod_mod)
 		on delete cascade,
@@ -279,9 +279,9 @@ create table docente (
 
 create table docente_asignatura_seccion (
 	cod_doc_asig_sec UUID DEFAULT uuid_generate_v4() primary key,
-	cod_sec UUID not null,
-	cod_docente UUID not null,
-	cod_asig UUID not null,
+	cod_sec UUID,
+	cod_docente UUID,
+	cod_asig UUID,
 	constraint fk_docente_asignatura_seccion_seccion foreign key (cod_sec)
 		references seccion (cod_sec)
 		on delete cascade,
@@ -294,17 +294,17 @@ create table docente_asignatura_seccion (
 );
 
 create table bloque_horario (
-	bloque UUID DEFAULT uuid_generate_v4() primary key,
+	bloque serial primary key,
 	hora_inicio time not null,
 	hora_fin time not null
 );
 
 create table clase (
 	cod_clase UUID DEFAULT uuid_generate_v4() primary key,
-	cod_doc_asig_sec UUID not null,
-	cod_sala UUID not null,
+	cod_doc_asig_sec UUID,
+	cod_sala UUID,
 	sala_real varchar (20) not null,
-	bloque UUID not null,
+	bloque int,
 	fecha date not null,
 	constraint fk_clase_docente_asignatura_seccion foreign key (cod_doc_asig_sec)
 		references docente_asignatura_seccion (cod_doc_asig_sec)
@@ -316,3 +316,6 @@ create table clase (
 		references bloque_horario (bloque)
 		on delete cascade
 );
+
+
+
