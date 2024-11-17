@@ -16,7 +16,7 @@ create table zona (
 
 create table ciudad (
 	cod_ciudad UUID DEFAULT uuid_generate_v4() primary key,
-	nombre varchar (25) not null,
+	nombre varchar (50) not null,
 	cod_zona UUID not null,
 	constraint fk_ciudad_zona foreign key (cod_zona)
 		references zona (cod_zona)
@@ -92,14 +92,14 @@ create table usuario (
 
 create table controlador (
 	cod_controlador UUID DEFAULT uuid_generate_v4() primary key,
-	mac varchar (30) not null,
+	mac varchar (50) not null,
 	constraint unique_mac_controlador unique (mac),
 	constraint check_mac_controlador check (trim(mac) <> '')
 );
 
 create table tipo_sensor (
 	cod_tipo_sensor UUID DEFAULT uuid_generate_v4() primary key,
-	nombre varchar(20) not null,
+	nombre varchar(50) not null,
 	constraint unique_nombre_tipo_sensor unique (nombre),
 	constraint check_nombre_sensor check (trim(nombre) <> '')
 );
@@ -136,14 +136,14 @@ create table valor_lectura (
 
 create table orientacion (
 	cod_ori UUID DEFAULT uuid_generate_v4() primary key,
-	orientacion varchar (10) not null,
+	orientacion varchar (25) not null,
 	constraint unique_orientacion_orientacion unique (orientacion),
 	constraint check_orientacion_orientacion check (trim(orientacion) <> '')
 );
 
 create table sala (
 	cod_sala UUID DEFAULT uuid_generate_v4() primary key,
-	numero int,
+	sala varchar(25) not null,
 	capacidad int,
 	cod_edificio UUID not null,
 	cod_controlador UUID unique,
@@ -158,26 +158,26 @@ create table sala (
 	constraint fk_sala_orientacion foreign key (cod_ori)
 		references orientacion (cod_ori)
 		on delete cascade,
-	constraint unique_numero_sala unique (numero),
-	constraint check_numero_sala check (numero > 0)
+	constraint unique_sala_sala unique (sala),
+	constraint check_sala_sala check (trim(sala) <> '')
 );
 
 create table tipo_ac (
 	cod_tipo UUID DEFAULT uuid_generate_v4() primary key,
-	nombre varchar (25) not null,
+	nombre varchar (30) not null,
 	constraint unique_nombre_tipo_ac unique (nombre),
 	constraint check_nombre_tipo_ac check (trim(nombre) <> '')
 );
 
 create table marca_ac (
 	cod_marca UUID DEFAULT uuid_generate_v4() primary key,
-	nombre varchar (10) not null,
+	nombre varchar (20) not null,
 	constraint unique_nombre_marca_ac unique (nombre)
 );
 
 create table modelo_ac (
 	cod_modelo UUID DEFAULT uuid_generate_v4() primary key,
-	modelo varchar (20) not null,
+	modelo varchar (25) not null,
 	constraint unique_modelo_modelo_ac unique (modelo),
 	constraint check_modelo_modelo_ac check (trim(modelo) <> '')
 );
@@ -214,7 +214,7 @@ create table ac (
 
 create table estado (
 	cod_estado UUID DEFAULT uuid_generate_v4() primary key,
-	estado varchar (20) not null,
+	estado varchar (25) not null,
 	constraint check_estado_estado_ac check (trim(estado) <> '')
 );
 
@@ -232,14 +232,14 @@ create table estado_ac (
 
 create table modalidad (
 	cod_mod UUID DEFAULT uuid_generate_v4() primary key,
-	modalidad varchar (20) not null,
+	modalidad varchar (25) not null,
 	constraint unique_modalidad_modalidad unique (modalidad),
 	constraint check_modalidad_modalidad check (trim(modalidad) <> '')
 );
 
 create table seccion (
 	cod_sec UUID DEFAULT uuid_generate_v4() primary key,
-	seccion varchar (20) not null,
+	seccion varchar (50) not null,
 	constraint unique_seccion_seccion unique (seccion),
 	constraint check_seccion_seccion check (trim(seccion) <> '')
 );
@@ -253,7 +253,7 @@ create table semestre (
 
 create table asignatura (
 	cod_asig UUID DEFAULT uuid_generate_v4() primary key,
-	identificador varchar (15) not null,
+	identificador varchar (30) not null,
 	nombre varchar (100) not null,
 	cod_mod UUID not null,
 	cod_sem UUID not null,
@@ -303,7 +303,7 @@ create table clase (
 	cod_clase UUID DEFAULT uuid_generate_v4() primary key,
 	cod_doc_asig_sec UUID not null,
 	cod_sala UUID not null,
-	sala_real int not null,
+	sala_real varchar (20) not null,
 	bloque UUID not null,
 	fecha date not null,
 	constraint fk_clase_docente_asignatura_seccion foreign key (cod_doc_asig_sec)
@@ -316,7 +316,3 @@ create table clase (
 		references bloque_horario (bloque)
 		on delete cascade
 );
-
-
-
-
