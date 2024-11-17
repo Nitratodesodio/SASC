@@ -1,36 +1,67 @@
+/*
+ * Example sketch for reporting on readings from the LD2410 using whatever settings are currently configured.
+ * 
+ * This has been tested on the following platforms...
+ * 
+ * On ESP32, connect the LD2410 to GPIO pins 32&33
+ * On ESP32S2, connect the LD2410 to GPIO pins 8&9
+ * On ESP32C3, connect the LD2410 to GPIO pins 4&5
+ * On Arduino Leonardo or other ATmega32u4 board connect the LD2410 to GPIO pins TX & RX hardware serial
+ * 
+ * The serial configuration for other boards will vary and you'll need to assign them yourself
+ * 
+ * There is no example for ESP8266 as it only has one usable UART and will not boot if the alternate UART pins are used for the radar.
+ * 
+ * For this sketch and other examples to be useful the board needs to have two usable UARTs.
+ * 
+ */
+
+
+#define MONITOR_SERIAL Serial
+#define RADAR_SERIAL Serial1
+#define RADAR_RX_PIN 16
+#define RADAR_TX_PIN 17
+    
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <time.h>
 #include <WiFiClientSecure.h>
-#include <DHT.h>  // Biblioteca para el sensor DHT
+#include "DHT.h" 
+#include <time.h>
+#include <ld2410.h>
+#define DHTPIN 4 // Pin donde está conectado el sensor DHT11
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
 
-#define DHTTYPE DHT11  
-#define DHTPIN 4// Sensor temperatura
-// Sensor de humedad
-// Sensor Presencia
-// Sensor Dioxido de carbono
-#define LED_BUILTIN 5 // Rele que corta la corriente (Por ahora un LED)
-DHT dht(DHTPIN, DHTTYPE);  // Crear una instancia del sensor DHT
+ld2410 radar;
 
-// Valores de la red (Actualizar segun la red)
+uint32_t lastReading = 0;
+bool radarConnected = false;
+const int ledPin = 5; // Pin del LED
+
+
+// Configuración WiFi
 const char* ssid = "Lucas_2.4";
 const char* password = "Bender1234";
-const char* mqtt_server = "06bc99c0b5924c838684c04a7a0e45a1.s1.eu.hivemq.cloud"; // Servidor MQTT en HIVEMQ
 
-WiFiClientSecure espClient;  //WiFiClientSecure para conexion TLS
+// Configuración MQTT
+const char* mqtt_server = "06bc99c0b5924c838684c04a7a0e45a1.s1.eu.hivemq.cloud"; // Servidor MQTT
+const int mqtt_port = 8883; //Puerto MQTT, para conexiones seguras
+const char* mqtt_user = "nano1";
+const char* mqtt_password = "nano1";
+const char* mqtt_topic = "101"; //Topico de la sala (Reemplazar por el numero de sala)
+const char* mqtt_topic_temp = "101/temp"; // tópico para la temperatura
+const char* mqtt_topic_pres = "101/pres"; // tópico para la temperatura
+const char* mqtt_topic_moving = "101/mov";
+
+WiFiClientSecure espClient; // Use WiFiClientSecure for secure connections
 PubSubClient client(espClient);
-
-unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE (500) // Tamaño máximo del mensaje es de 500 caracteres.
-char msg[MSG_BUFFER_SIZE];
-float lastTemperature = NAN;
-float lastHumidity = NAN;
 
 void setup_wifi() {
   delay(10);
   Serial.println();
-  Serial.print("Conectando ");
+  Serial.print("Conectando a ");
   Serial.println(ssid);
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -39,16 +70,58 @@ void setup_wifi() {
   }
 
   Serial.println("");
-  Serial.println("WiFi connectedo");
-  Serial.println("IP address: ");
+  Serial.println("WiFi conectado");
+  Serial.println("Dirección IP: ");
   Serial.println(WiFi.localIP());
 }
 
+void callback(char* topic, byte* payload, unsigned int length) {
+  String message = "";
+  for (int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  Serial.print("Mensaje recibido [");
+  Serial.print(topic);
+  Serial.print("]: ");
+  Serial.println(message);
+
+  // Enciende o apaga el LED según el mensaje recibido
+  if (message == "ON") {
+    digitalWrite(ledPin, HIGH);
+    Serial.println("LED encendido");
+  } else if (message == "OFF") {
+    digitalWrite(ledPin, LOW);
+    Serial.println("LED apagado");
+  }
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Intentando conexión MQTT...");
+    String clientId = "ESP32Client-";
+    clientId += String(random(0xffff), HEX);
+    if (client.connect(clientId.c_str(), mqtt_user, mqtt_password)) {
+      Serial.println("Conectado al broker MQTT");
+      client.subscribe(mqtt_topic);
+
+    } else {
+      Serial.print("Fallo, rc=");
+      Serial.print(client.state());
+      Serial.println(" intentando de nuevo en 5 segundos");
+      delay(5000);
+    }
+  }
+}
+
 void setDateTime() {
-  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  // Ajusta el desfase horario a UTC-3 (Chile) y maneja horario de verano
+  const long gmtOffset_sec = -3 * 3600; // Offset para Chile (UTC-3)
+  const int daylightOffset_sec = 3600; // Ajuste para horario de verano, si aplica
+
+  configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
   Serial.print("Waiting for NTP time sync: ");
   time_t now = time(nullptr);
-  while (now < 8 * 3600 * 2) {
+  while (now < 8 * 3600 * 2) { // Espera a que se sincronice la hora
     delay(100);
     Serial.print(".");
     now = time(nullptr);
@@ -59,105 +132,125 @@ void setDateTime() {
   Serial.printf("%s", asctime(&timeinfo));
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Mensaje recibido [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-
-  // Convertir el payload a una cadena
-  String receivedMessage = "";
-  for (int i = 0; i < length; i++) {
-    receivedMessage += (char)payload[i];
-  }
-
-  // Verificar si el mensaje recibido es "ENCIENDETE"
-  if (receivedMessage == "ENCIENDETE") {
-    digitalWrite(LED_BUILTIN, HIGH);  // Encender el LED
-    Serial.println("LED encendido!");
-  } else if (receivedMessage == "APAGATE") {
-    digitalWrite(LED_BUILTIN, LOW);  // Apagar el LED
-    Serial.println("LED apagado!");
-  }
-}
-
-void reconnect() {
-  while (!client.connected()) {
-    Serial.print("Conectando MQTT...");
-    String clientId = "ESP32Client";
-    if (client.connect(clientId.c_str(), "Nitrato", "Hola1234")) {
-      Serial.println("Conectado");
-
-      // Suscribirse al tópico específico de la sala
-      client.subscribe("sala/101");  // Cambia 101 por número de la sala que esta ESP32 controla
-      if (client.subscribe("sala/101")) {
-        Serial.println("Suscripción al tópico sala/101 exitosa");
-    } else {
-        Serial.println("Error al suscribirse al tópico sala/101");
-    }
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-    }
-  }
-}
-
-
-void setup() {
-  Serial.begin(9600);
+void setup(void)
+{
   setup_wifi();
-  setDateTime();
-  dht.begin();  // Iniciar el sensor DHT
-
-  pinMode(LED_BUILTIN, OUTPUT);  // Definir el pin del LED como salida
-  digitalWrite(LED_BUILTIN, LOW);  // Apagar el LED por defecto
-
-  espClient.setInsecure();
-  client.setServer(mqtt_server, 8883);
+  
+  espClient.setInsecure(); // Se usa para conexiones TLS sin certificado cargado (no recomendado para producción)
+  client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
+
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW); // LED apagado al inicio
+  
+  dht.begin(); // Inicializa el sensor DHT
+  setDateTime(); // Sincronizar la hora al inicio
+  MONITOR_SERIAL.begin(115200); //Feedback over Serial Monitor
+  //radar.debug(MONITOR_SERIAL); //Uncomment to show debug information from the library on the Serial Monitor. By default this does not show sensor reads as they are very frequent.
+  #if defined(ESP32)
+    RADAR_SERIAL.begin(256000, SERIAL_8N1, RADAR_RX_PIN, RADAR_TX_PIN); //UART for monitoring the radar
+  #elif defined(__AVR_ATmega32U4__)
+    RADAR_SERIAL.begin(256000); //UART for monitoring the radar
+  #endif
+  delay(500);
+  MONITOR_SERIAL.print(F("\nConnect LD2410 radar TX to GPIO:"));
+  MONITOR_SERIAL.println(RADAR_RX_PIN);
+  MONITOR_SERIAL.print(F("Connect LD2410 radar RX to GPIO:"));
+  MONITOR_SERIAL.println(RADAR_TX_PIN);
+  MONITOR_SERIAL.print(F("LD2410 radar sensor initialising: "));
+  if(radar.begin(RADAR_SERIAL))
+  {
+    MONITOR_SERIAL.println(F("OK"));
+    MONITOR_SERIAL.print(F("LD2410 firmware version: "));
+    MONITOR_SERIAL.print(radar.firmware_major_version);
+    MONITOR_SERIAL.print('.');
+    MONITOR_SERIAL.print(radar.firmware_minor_version);
+    MONITOR_SERIAL.print('.');
+    MONITOR_SERIAL.println(radar.firmware_bugfix_version, HEX);
+  }
+  else
+  {
+    MONITOR_SERIAL.println(F("not connected"));
+  }
 }
 
-void loop() {
+void loop()
+{
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
 
+  // Leer temperatura y humedad cada 5 segundos
+  static unsigned long lastMsg = 0;
   unsigned long now = millis();
-  if (now - lastMsg > 1000) { // Comprobar cada 1 segundos
+  if (now - lastMsg > 5000) {
     lastMsg = now;
     
-    // Leer los datos del sensor DHT
-    float temperature = dht.readTemperature();
-    float humidity = dht.readHumidity();
-    if (isnan(temperature) || isnan(humidity)) {
-      Serial.println("Failed to read from DHT sensor!");
-      return;
-    }
-    
-    // Verificar si la temperatura o la humedad han cambiado
-    if (temperature != lastTemperature || humidity != lastHumidity) {
-      // Actualizar los valores anteriores
-      lastTemperature = temperature;
-      lastHumidity = humidity;
-      
-     // Obtener la fecha y hora actual
+    float temperature = dht.readTemperature(); // Lee la temperatura del DHT11
+
+    // Verificar si la lectura fue exitosa
+    if (isnan(temperature)) {
+      Serial.println("Error al leer del sensor DHT");
+    } else {
+      // Obtener la hora actual
       time_t now = time(nullptr);
       struct tm timeinfo;
       localtime_r(&now, &timeinfo);
-      char dateTime[30];
-      strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", &timeinfo);
-      
-      // Publicar la temperatura, humedad y fecha/hora en el tópico MQTT
-      snprintf(msg, MSG_BUFFER_SIZE, "Fecha y Hora: %s, Temperatura: %.2f °C, Humedad: %.2f %%", dateTime, temperature, humidity);
-      Serial.print("Mensaje Publicado en sala/101/registro : ");
-      Serial.println(msg);
-      client.publish("sala/101/registro", msg);  // Publicar en el tópico testTopic (Reemplazar por sala/101/registro)
+
+      // Formatear la fecha y hora
+      char timeString[64];
+      strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", &timeinfo);
+
+      // Crear el mensaje para publicar
+      String message = String(timeString) + " - Temperatura: " + String(temperature);
+      Serial.println("Publicando: " + message);
+
+      // Publicar la temperatura y fecha/hora al tópico MQTT
+      client.publish(mqtt_topic_temp, message.c_str());
+    }
+  }
+  radar.read();
+  if(radar.isConnected() && millis() - lastReading > 1000)  //Report every 1000ms
+  {
+    lastReading = millis();
+    if(radar.presenceDetected())
+    {
+      if(radar.stationaryTargetDetected())
+      {
+        Serial.print(F("Stationary target: "));
+        Serial.print(radar.stationaryTargetDistance());
+        Serial.print(F("cm energy:"));
+        Serial.print(radar.stationaryTargetEnergy());
+        Serial.print(' ');
+        // Crear un String para almacenar la información
+        String pres = "Stationary target: " + String(radar.stationaryTargetDistance()) + "\n";
+        pres += "cm energy: " + String(radar.stationaryTargetEnergy()) + "\n";
+        // Publicarlo en el tópico MQTT 
+        client.publish(mqtt_topic_pres, pres.c_str());
+      }
+      if(radar.movingTargetDetected())
+      {
+        Serial.print(F("Moving target: "));
+        Serial.print(radar.movingTargetDistance());
+        Serial.print(F("cm energy:"));
+        Serial.print(radar.movingTargetEnergy());
+        // Crear un String para almacenar la información
+        String message = "Moving target: " + String(radar.movingTargetDistance()) + "\n";
+        message += "cm energy: " + String(radar.movingTargetEnergy()) + "\n";
+
+        // Imprimir el mensaje en el Serial Monitor
+        Serial.print(message);
+
+       // Publicarlo en el tópico MQTT 
+       client.publish(mqtt_topic_moving, message.c_str());
+     
+      }
+      Serial.println();
+    }
+    else
+    {
+      Serial.println(F("No target"));
     }
   }
 }
