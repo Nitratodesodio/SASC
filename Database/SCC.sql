@@ -300,7 +300,7 @@ create table clase (
 create table bloque_clase(
 	cod_bloque_clase UUID DEFAULT uuid_generate_v4() primary key,
 	bloque int,
-	cod_sala UUID,
+	cod_clase UUID,
 	constraint fk_bloque_clase_bloque foreign key (bloque)
 		references bloque_horario (bloque)
 		on delete cascade,
