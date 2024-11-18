@@ -20,6 +20,14 @@ class ModalidadDAO:
             return Modalidad(*row)
         return None
 
+    def get_id_by_modalidad(self, modalidad):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_mod FROM modalidad WHERE modalidad = %s", (modalidad,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
     def get_all(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT cod_mod, modalidad FROM modalidad")
@@ -56,6 +64,14 @@ class SemestreDAO:
         row = cursor.fetchone()
         if row:
             return Semestre(*row)
+        return None
+
+    def get_id_by_semestre(self, semestre):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sem FROM semestre WHERE semestre = %s", (semestre,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
         return None
 
     def get_all(self):
@@ -132,6 +148,14 @@ class SeccionDAO:
         row = cursor.fetchone()
         if row:
             return Seccion(*row)
+        return None
+
+    def get_id_by_seccion(self, seccion):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sec FROM seccion WHERE seccion = %s", (seccion,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
         return None
 
     def get_all(self):
