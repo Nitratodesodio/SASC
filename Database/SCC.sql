@@ -230,9 +230,8 @@ create table seccion (
 
 create table semestre (
 	cod_sem UUID DEFAULT uuid_generate_v4() primary key,
-	semestre int not null,
-	constraint unique_semestre_semestre unique (semestre),
-	constraint check_semestre_semestre check (semestre > 0)
+	semestre varchar (20) not null,
+	constraint unique_semestre_semestre unique (semestre)
 );
 
 create table asignatura (
