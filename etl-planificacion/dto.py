@@ -41,11 +41,10 @@ class DocenteAsignaturaSeccion:
         self.cod_doc_asig_sec = cod_doc_asig_sec
 
 class Clase:
-    def __init__(self, cod_clase, cod_doc_asig_sec, cod_sala, bloque, sala_real, fecha):
+    def __init__(self, cod_clase, cod_doc_asig_sec, cod_sala, sala_real, fecha):
         self.cod_clase = cod_clase
         self.cod_doc_asig_sec = cod_doc_asig_sec
         self.cod_sala = cod_sala
-        self.bloque = bloque
         self.sala_real = sala_real
         self.fecha = fecha
 
@@ -58,13 +57,14 @@ class BloqueHorario:
 
 
 class Sala:
-    def __init__(self, cod_sala, cod_edificio, cod_ori, numero, capacidad, volumen):
+    def __init__(self, cod_sala, cod_edificio, cod_ori, sala, capacidad, volumen, cod_controlador):
         self.cod_sala = cod_sala
         self.cod_edificio = cod_edificio
         self.cod_ori = cod_ori
-        self.numero = numero
+        self.sala = sala
         self.capacidad = capacidad
         self.volumen = volumen
+        self.cod_controlador = cod_controlador
 
 
 class Sede:
@@ -78,3 +78,9 @@ class Edificio:
         self.cod_edificio = cod_edificio
         self.cod_sede = cod_sede
         self.nombre = nombre
+
+class BloqueClase:
+    def __init__(self, cod_bloque_clase, cod_clase, bloque):
+        self.cod_bloque_clase = cod_bloque_clase
+        self.cod_clase = cod_clase
+        self.bloque = bloque
