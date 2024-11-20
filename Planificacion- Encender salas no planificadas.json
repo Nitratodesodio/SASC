@@ -1,0 +1,557 @@
+[
+    {
+        "id": "f8b29b715bb8b2c9",
+        "type": "tab",
+        "label": "Flow 6",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0aa2ba8e4ef97849",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "86400",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "af67e6787ac82cb1"
+            ]
+        ]
+    },
+    {
+        "id": "af67e6787ac82cb1",
+        "type": "postgresql",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "query": "SELECT \n    Clase.cod_clase,\n    Clase.sala_real,\n    Clase.fecha,\n    Bloque_horario.hora_inicio,\n    Bloque_horario.hora_fin\nFROM \n    Clase\nINNER JOIN \n    Bloque_horario ON Clase.bloque = Bloque_horario.bloque\nWHERE \n    Clase.fecha = CURRENT_DATE;\n",
+        "postgreSQLConfig": "b2cd7032c28babb3",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 370,
+        "y": 100,
+        "wires": [
+            [
+                "751704a84c4d6c54"
+            ]
+        ]
+    },
+    {
+        "id": "67c7aaefa46a54ac",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Enviar Mensaje Sala",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "3d6991b35c72e0e6",
+        "x": 920,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "556e289274d88fa3",
+        "type": "split",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Dividir mensajes",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 940,
+        "y": 820,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a2889adb1c76a1f5",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Comparar con planificación",
+        "func": "// Formatear la hora actual para asegurar coincidencia con item.hora_inicio en formato HH:MM\nconst currentDate = new Date();\nconst horaActual = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;\nnode.warn(`Hora actual formateada: ${horaActual}`);\n\nconst planificacion = msg.payload || [];\n\nlet mensajes = [];\n\nplanificacion.forEach(item => {\n    // Construir el topic asegurando formato válido\n    let topic = `${item.sala_real}`.trim();  // Asegura que no haya espacios\n    topic = topic.replace(/[^a-zA-Z0-9/]/g, '');  // Remueve caracteres no válidos si existen\n\n    // Normalizar el valor de hora_inicio y hora_fin al formato HH:MM\n    const horaInicio = item.hora_inicio.slice(0, 5); // Tomamos solo los primeros 5 caracteres (HH:MM)\n    const horaFin = item.hora_fin.slice(0, 5); // Tomamos solo los primeros 5 caracteres (HH:MM)\n    if(msg.fecha==item.fecha){\n\n\n    }else{\n        \n    }\n    node.warn(`Hora de inicio para la sala ${item.sala_real}: ${horaInicio}`);\n    if (horaActual === horaInicio) {\n        mensajes.push({ topic: topic, payload: \"ON\" });\n        node.warn(`Encendiendo sala ${item.sala_real}`);\n    } else if (horaActual === horaFin) {\n        mensajes.push({ topic: topic, payload: \"OFF\" });\n        node.warn(`Apagando sala ${item.sala_real}`);\n    }\n});\n\n\n// No necesitamos devolver el mensaje original ya que estamos enviando cada mensaje individualmente\nreturn null;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 840,
+        "wires": [
+            [
+                "556e289274d88fa3"
+            ]
+        ]
+    },
+    {
+        "id": "08d844e42fa56663",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Ver presencia de salas no planificadas",
+        "func": "// Obtener el mensaje y el tópico\nlet mensaje = msg.payload;\nlet topico = msg.topic;\n\n// Extraer el número de la sala (por ejemplo, \"101\" de \"101/pre\")\nlet numeroSala = topico.split('/')[0];\n\n// Obtener el estado actual del contador y el último mensaje recibido del contexto de flujo\nlet estado = flow.get(numeroSala) || { contador: 0, ultimoMensaje: \"\" };\n\n// Si el mensaje es \"No target\"\nif (mensaje === \"No target\") {\n    if (estado.ultimoMensaje === \"No target\") {\n        // Incrementar el contador si el mensaje es igual al último mensaje (\"No target\")\n        estado.contador += 1;\n    } else {\n        // Reiniciar el contador si el mensaje es \"No target\" pero no es igual al último\n        estado.contador = 1;\n    }\n    estado.ultimoMensaje = \"No target\"; // Actualizar el último mensaje\n\n    // Si el contador llega a 3 mensajes consecutivos \"No target\", enviar \"OFF\"\n    if (estado.contador === 3) {\n        estado.contador = 0; // Reiniciar el contador\n        flow.set(numeroSala, estado); // Guardar el estado actualizado\n        let nuevoMensaje = {\n            payload: \"OFF\",\n            topic: numeroSala // El nuevo tópico, que es solo el número de sala\n        };\n        return nuevoMensaje;\n    }\n} else {\n    // Si el mensaje es diferente a \"No target\"\n    if (estado.ultimoMensaje !== \"No target\") {\n        // Incrementar el contador si el mensaje es diferente al último \"No target\"\n        estado.contador += 1;\n    } else {\n        // Reiniciar el contador si hay un cambio de \"No target\" a un mensaje diferente\n        estado.contador = 1;\n    }\n    estado.ultimoMensaje = mensaje; // Actualizar el último mensaje\n\n    // Si el contador llega a 3 mensajes consecutivos diferentes a \"No target\", enviar \"ON\"\n    if (estado.contador === 3) {\n        estado.contador = 0; // Reiniciar el contador\n        flow.set(numeroSala, estado); // Guardar el estado actualizado\n        let nuevoMensaje = {\n            payload: \"ON\",\n            topic: numeroSala // El nuevo tópico, que es solo el número de sala\n        };\n        return nuevoMensaje;\n    }\n}\n\n// Guardar el estado actualizado\nflow.set(numeroSala, estado);\n\n// No hacer nada si el mensaje no cumple las condiciones\nreturn null;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 220,
+        "wires": [
+            [
+                "160867431fcd70b8"
+            ]
+        ]
+    },
+    {
+        "id": "b384305330730584",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "hora",
+                "v": "",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 940,
+        "wires": [
+            [
+                "a681ec428e028b4b"
+            ]
+        ]
+    },
+    {
+        "id": "a681ec428e028b4b",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Hora actual",
+        "func": "// Obtener la hora actual\nconst now = new Date();\nconst horaActual = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;\nmsg.hora = horaActual;\n\n// Obtener los datos almacenados globalmente de la base de datos\nconst dbData = global.get('dbData');\n\n// Recorrer los registros de dbData para comparar la hora\nlet mensaje = [];\n\n    dbData.forEach(registro => {\n        const { hora_inicio, hora_fin, sala_real } = registro;\n        let parts = hora_inicio.split(\":\");\n        let hora_iniciof = parts[0] + \":\" + parts[1]; // \"HH:MM\"\n        \n        let partsf = hora_fin.split(\":\");\n        let hora_finf = partsf[0] + \":\" + partsf[1]; // \"HH:MM\"\n\n        \n        // Comparar la hora actual con hora_inicio y hora_fin\n        if (horaActual === hora_iniciof) {\n            // Publicar un mensaje de ON\n            mensaje.push({ topic: sala_real, payload: \"ON\" });\n            node.warn(`Encendiendo sala ${registro.sala_real}`);\n        } else if (horaActual === hora_finf) {\n            // Publicar un mensaje de OFF\n            mensaje.push({ topic: sala_real, payload: \"OFF\" });\n            node.warn(`Apagando sala ${registro.sala_real}`);\n        }\n       \n    });\n\n\n// Si hay un mensaje a publicar\nif (mensaje) {\n    return [mensaje, null]; // Enviar el mensaje a un nodo de publicación MQTT\n} else {\n    return [null, msg]; // Continuar el flujo normalmente si no hay coincidencia\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 940,
+        "wires": [
+            [
+                "3c149e164f00f080"
+            ]
+        ]
+    },
+    {
+        "id": "260e8daa59ca48f5",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "751704a84c4d6c54",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Guardar clases",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('dbData', msg.payload);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'dbData'\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 100,
+        "wires": [
+            [
+                "260e8daa59ca48f5"
+            ]
+        ]
+    },
+    {
+        "id": "3c149e164f00f080",
+        "type": "split",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Dividir mensajes",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 580,
+        "y": 1100,
+        "wires": [
+            [
+                "67c7aaefa46a54ac"
+            ]
+        ]
+    },
+    {
+        "id": "0857ea2c4c87ba39",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "topic": "+/temp",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e744a254f7239db4",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 860,
+        "wires": [
+            [
+                "70b9f24df71a94a1"
+            ]
+        ]
+    },
+    {
+        "id": "70b9f24df71a94a1",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "8fc5b142cbeb04ff",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Suscripcion a presencia de salas no planificadas",
+        "topic": "+/pres",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 260,
+        "y": 220,
+        "wires": [
+            [
+                "08d844e42fa56663"
+            ]
+        ]
+    },
+    {
+        "id": "9842ce59205edb0c",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Sala Planificada",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "89bb1791d7579d49",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Obtener cuanto tiempo antes debe encenderse",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a8d136e1351e1175",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Enviar mensaje cuando sea la hora",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "",
+        "x": 960,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "160867431fcd70b8",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Apagar cuando no se esta utilizando",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 1010,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "5f6ec84f73757cf6",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Sala en clases",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "39a74e0406231813",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Obserbar temperatura y presencia",
+        "func": "\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b2cd7032c28babb3",
+        "type": "postgreSQLConfig",
+        "name": "Obtener clases",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "SCC_TEST_CLASES",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": "10",
+        "maxFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "0000000000",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "3d6991b35c72e0e6",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "4841294a15b64138b4f168037a7b7a2a.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "5",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "e744a254f7239db4",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "06bc99c0b5924c838684c04a7a0e45a1.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "5322238dbb9749db",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "z3ef5889.ala.us-east-1.emqxsl.com",
+        "port": "8883",
+        "tls": "0b89bbcfcf8700fb",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "0b89bbcfcf8700fb",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "emqxsl-ca.crt",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
+    }
+]
