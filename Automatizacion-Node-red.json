@@ -1,0 +1,511 @@
+[
+    {
+        "id": "f8b29b715bb8b2c9",
+        "type": "tab",
+        "label": "Flow 6",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0aa2ba8e4ef97849",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "86400",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "af67e6787ac82cb1"
+            ]
+        ]
+    },
+    {
+        "id": "af67e6787ac82cb1",
+        "type": "postgresql",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "query": "SELECT \n    Clase.cod_clase,\n    Clase.sala_real,\n    Clase.fecha,\n    Bloque_horario.hora_inicio,\n    Bloque_horario.hora_fin\nFROM \n    Clase\nINNER JOIN \n    Bloque_horario ON Clase.bloque = Bloque_horario.bloque\nWHERE \n    Clase.fecha = CURRENT_DATE;\n",
+        "postgreSQLConfig": "b2cd7032c28babb3",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 370,
+        "y": 100,
+        "wires": [
+            [
+                "751704a84c4d6c54"
+            ]
+        ]
+    },
+    {
+        "id": "260e8daa59ca48f5",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "751704a84c4d6c54",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Guardar clases",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('dbData', msg.payload);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'dbData'\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 100,
+        "wires": [
+            [
+                "260e8daa59ca48f5"
+            ]
+        ]
+    },
+    {
+        "id": "d231a694de93cd8f",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Segmentar Iniciada/No Iniciada/ Por Iniciar",
+        "func": "// Obtener la variable global\nlet dbdatos = global.get(\"dbData\") || []; // Asegurarse de que exista\n\n// Obtener la hora actual en formato HH:MM\nlet now = new Date();\nlet currentHour = now.getHours().toString().padStart(2, \"0\");\nlet currentMinute = now.getMinutes().toString().padStart(2, \"0\");\nlet currentTime = `${currentHour}:${currentMinute}`;\nnode.warn(currentTime);\n\n// Convertir una hora HH:MM a minutos totales para cálculos\nfunction timeToMinutes(time) {\n    let [hour, minute] = time.split(\":\").map(Number);\n    return hour * 60 + minute;\n}\n\n// Calcular el tiempo actual en minutos\nlet currentTimeMinutes = timeToMinutes(currentTime);\n\n// Filtrar los registros\nlet porIniciar = [];\nlet iniciada = [];\nlet noIniciada = [];\n\ndbdatos.forEach(record => {\n    let inicioMinutes = timeToMinutes(record.hora_inicio);\n    let finMinutes = timeToMinutes(record.hora_fin);\n\n    // Por Iniciar: Diferencia de menos de 45 minutos hasta la hora de inicio\n    if (inicioMinutes - currentTimeMinutes <= 45 && inicioMinutes > currentTimeMinutes) {\n        porIniciar.push(record);\n    }\n    // Iniciada: La hora actual está entre hora_inicio y hora_fin\n    else if (currentTimeMinutes >= inicioMinutes && currentTimeMinutes <= finMinutes) {\n        iniciada.push(record);\n    }\n    // No Iniciada: El resto de los registros\n    else {\n        noIniciada.push(record);\n    }\n});\n\n// Registrar las listas en variables globales\nglobal.set('PorIniciar', porIniciar);\nglobal.set('Iniciada', iniciada);\nglobal.set('NoIniciada', noIniciada);\n\n// Imprimir en la consola de Node-RED para depuración\nnode.warn({ PorIniciar: porIniciar });\nnode.warn({ Iniciada: iniciada });\nnode.warn({ NoIniciada: noIniciada });\n\n// Retornar el mensaje original\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 200,
+        "wires": [
+            [
+                "8ef62b6200e0d2d6"
+            ]
+        ]
+    },
+    {
+        "id": "bcc1e64e17e0791d",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 200,
+        "wires": [
+            [
+                "d231a694de93cd8f"
+            ]
+        ]
+    },
+    {
+        "id": "8ef62b6200e0d2d6",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 12",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "beb5d9d8ee921fd8",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Recibir Temperatura",
+        "topic": "+/temp",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 250,
+        "y": 740,
+        "wires": [
+            [
+                "57f041c29acbb4b1"
+            ]
+        ]
+    },
+    {
+        "id": "57f041c29acbb4b1",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Filtrar Por Iniciar",
+        "func": "// Obtener la lista global de clases \"Por Iniciar\"\nlet porIniciar = global.get(\"PorIniciar\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Por Iniciar\"\nlet salaEnLista = porIniciar.some(record => record.sala_real == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 740,
+        "wires": [
+            [
+                "8f201296e56f2950"
+            ]
+        ]
+    },
+    {
+        "id": "8f201296e56f2950",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Lógica de Temperatura",
+        "func": "// Umbral de temperatura ideal\nconst tempIdeal = 21;\nconst tolerancia = 1; // Margen de +/- 1°C\n\n// Obtener temperatura actual\nlet temperaturaActual = parseFloat(msg.payload);\nlet sala = msg.topic.split(\"/\")[0];\n\n// Decidir si encender el aire acondicionado\nif (temperaturaActual < (tempIdeal - tolerancia) || temperaturaActual > (tempIdeal + tolerancia)) {\n    return {\n        payload: \"ON\",\n        topic: sala\n    };\n} else {\n    return null; // No hacer nada si la temperatura está dentro del rango\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 740,
+        "wires": [
+            [
+                "644acfb09f23fd5a",
+                "c441f97214e52e85"
+            ]
+        ]
+    },
+    {
+        "id": "644acfb09f23fd5a",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Enviar ON",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 850,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "c441f97214e52e85",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 15",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "9e78d47ec8b4bddd",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Recibir Presencia",
+        "topic": "+/pres",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 310,
+        "y": 880,
+        "wires": [
+            [
+                "37948d85c10fc809"
+            ]
+        ]
+    },
+    {
+        "id": "934056af7f92dd62",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Recibir Temperatura",
+        "topic": "+/temp",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 310,
+        "y": 980,
+        "wires": [
+            [
+                "37948d85c10fc809"
+            ]
+        ]
+    },
+    {
+        "id": "37948d85c10fc809",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Filtrar por salas en clases ",
+        "func": "// Obtener la lista global de clases \"Iniciadas\"\nlet iniciada = global.get(\"Iniciada\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Iniciadas\"\nlet salaEnLista = iniciada.some(record => record.sala_real == sala);\n\n// Si la sala no está en \"Iniciadas\", bloquear el mensaje\nif (!salaEnLista) {\n    return null;\n}\n\n// Umbral de temperatura\nconst tempIdeal = 21;\nconst tolerancia = 1; // Margen de +/- 1°C\n\n// Obtener el tipo de dato (presencia o temperatura) del tópico\nlet tipo = msg.topic.split(\"/\")[1];\n\n// Obtener el estado actual de la sala del contexto de flujo\nlet estado = flow.get(sala) || { temperatura: null, presencia: \"0\", contadorAusencia: 0 };\n\n// Actualizar el estado según el tipo de dato recibido\nif (tipo === \"temp\") {\n    estado.temperatura = parseFloat(msg.payload); // Guardar temperatura\n} else if (tipo === \"pres\") {\n    estado.presencia = msg.payload; // Guardar presencia (\"1\" para presente, \"0\" para ausente)\n}\n\n// Decisiones:\nif (estado.presencia.includes(\"Stationary target\")) {\n\n        return {\n            payload: \"ON\",\n            topic: sala // Enviar comando \"ON\" al tópico de la sala\n        };\n    \n} else {\n    // Si no hay presencia, incrementar el contador de ausencia\n    estado.contadorAusencia += 1;\n\n    // Si el contador alcanza o supera los 10 ciclos, enviar \"OFF\"\n    if (estado.contadorAusencia >= 10) {\n        estado.contadorAusencia = 0; // Reiniciar el contador\n        flow.set(sala, estado); // Guardar el estado actualizado\n\n        return {\n            payload: \"OFF\",\n            topic: sala // Enviar comando \"OFF\" al tópico de la sala\n        };\n    }\n}\n\n// Guardar el estado actualizado\nflow.set(sala, estado);\n\n// No hacer nada si no se cumple ninguna condición\nreturn null;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 930,
+        "wires": [
+            [
+                "c64844db3f7d3588",
+                "4cdd638df3a7d79d"
+            ]
+        ]
+    },
+    {
+        "id": "c64844db3f7d3588",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Enviar ON/OFF",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 810,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "4cdd638df3a7d79d",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 16",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "5921f0beb3098121",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Recibir Presencia",
+        "topic": "+/pres",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 240,
+        "y": 500,
+        "wires": [
+            [
+                "039391d81cea216c"
+            ]
+        ]
+    },
+    {
+        "id": "039391d81cea216c",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Filtrar No Iniciadas",
+        "func": "// Obtener la lista global de clases \"No Iniciada\"\nlet noIniciada = global.get(\"NoIniciada\") || [];\n\n// Obtener el número de sala desde el tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"No Iniciada\"\nlet salaEnLista = noIniciada.some(record => record.sala_real == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 500,
+        "wires": [
+            [
+                "9695865ee5384db1",
+                "aa42d72b96a2e8dc"
+            ]
+        ]
+    },
+    {
+        "id": "9695865ee5384db1",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Lógica de Presencia y Ausencia",
+        "func": "// Obtener el mensaje de presencia (\"1\" para presente, \"0\" para ausente)\nlet presencia = msg.payload; // Datos del sensor de presencia\n\nlet sala = msg.topic.split(\"/\")[0]; // Número de sala\nnode.warn(sala);\n// Obtener el estado actual de la sala desde el contexto de flujo\nlet estado = flow.get(sala) || { contadorAusencia: 0, ultimaPresencia: \"0\" };\n\nif (presencia.includes(\"Stationary target\")) {\n    // Si hay presencia\n    estado.contadorAusencia = 0; // Reiniciar el contador de ausencia\n    estado.ultimaPresencia = \"1\"; // Actualizar el estado de presencia\n\n    // Guardar el estado actualizado\n    flow.set(sala, estado);\n\n    // Enviar comando \"ON\"\n    return {\n        payload: \"ON\",\n        topic: sala\n    };\n} else {\n\n\n        return {\n            payload: \"OFF\",\n            topic: sala\n        };\n    }\n\n    // Guardar el estado actualizado\n    flow.set(sala, estado);\n\n    // No hacer nada aún si no se alcanza el umbral\n    return null;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 500,
+        "wires": [
+            [
+                "8299471e4e01dba7"
+            ]
+        ]
+    },
+    {
+        "id": "8299471e4e01dba7",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "Enviar ON/OFF",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 1060,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "aa42d72b96a2e8dc",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 17",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "b2cd7032c28babb3",
+        "type": "postgreSQLConfig",
+        "name": "Obtener clases",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "SCC_TEST_CLASES",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": "10",
+        "maxFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "root",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "5322238dbb9749db",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "z3ef5889.ala.us-east-1.emqxsl.com",
+        "port": "8883",
+        "tls": "0b89bbcfcf8700fb",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "0b89bbcfcf8700fb",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "emqxsl-ca.crt",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
+    }
+]
