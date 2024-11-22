@@ -1,22 +1,3 @@
-/*
- * Example sketch for reporting on readings from the LD2410 using whatever settings are currently configured.
- * 
- * This has been tested on the following platforms...
- * 
- * On ESP32, connect the LD2410 to GPIO pins 32&33
- * On ESP32S2, connect the LD2410 to GPIO pins 8&9
- * On ESP32C3, connect the LD2410 to GPIO pins 4&5
- * On Arduino Leonardo or other ATmega32u4 board connect the LD2410 to GPIO pins TX & RX hardware serial
- * 
- * The serial configuration for other boards will vary and you'll need to assign them yourself
- * 
- * There is no example for ESP8266 as it only has one usable UART and will not boot if the alternate UART pins are used for the radar.
- * 
- * For this sketch and other examples to be useful the board needs to have two usable UARTs.
- * 
- */
-
-
 #define MONITOR_SERIAL Serial
 #define RADAR_SERIAL Serial1
 #define RADAR_RX_PIN 16
@@ -29,7 +10,7 @@
 #include <time.h>
 #include <ld2410.h>
 #define DHTPIN 4 // Pin donde está conectado el sensor DHT11
-#define DHTTYPE DHT11
+#define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
 ld2410 radar;
@@ -250,7 +231,7 @@ void loop()
     }
     else
     {
-      Serial.println(F("No target"));
+      client.publish(mqtt_topic_pres,"No target");
     }
   }
 }
