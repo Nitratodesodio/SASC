@@ -129,6 +129,14 @@ class AsignaturaDAO:
         cursor.execute("DELETE FROM asignatura WHERE cod_asig = %s", (cod_asig,))
         self.connection.commit()
 
+    def get_id_by_identificador(self, identificador):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_asig FROM asignatura WHERE identificador = %s", (identificador,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
 
 class SeccionDAO:
     def __init__(self, connection):
@@ -196,6 +204,14 @@ class DocenteDAO:
             return Docente(*row)
         return None
 
+    def get_id_by_rut(self, rut):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_docente FROM docente WHERE rut = %s", (rut,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
     def get_all(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT cod_docente, rut, nombre, primer_apellido, segundo_apellido FROM docente")
@@ -250,6 +266,18 @@ class DocenteAsignaturaSeccionDAO:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM docente_asignatura_seccion WHERE cod_doc_asig_sec = %s", (cod_doc_asig_sec,))
         self.connection.commit()
+
+    def get_id_by_rut_identificador_seccion(self, rut, identificador, seccion):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_doc_asig_sec FROM docente_asignatura_seccion das "
+                       "JOIN docente d ON das.cod_docente = d.cod_docente "
+                       "JOIN asignatura a ON das.cod_asig = a.cod_asig "
+                       "JOIN seccion s ON das.cod_sec = s.cod_sec "
+                       "WHERE d.rut = %s AND a.identificador = %s AND s.seccion = %s", (rut, identificador, seccion))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
 
 
 class BloqueHorarioDAO:

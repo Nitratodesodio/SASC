@@ -36,6 +36,14 @@ usecols_bloques = "C, D"
 df_bloques = get_data(archivo, bloques, headers_bloques, skiprows_bloques, usecols_bloques)
 df_planificacion = get_data(archivo, planificacion, headers_pln, skiprows_pln, usecols_pln)
 
+"""Almacenado de Bloques"""
+for index, bloque in df_bloques.iterrows():
+    if not BloqueHorarioDAO(conn).get_by_id(bloque["BLOQUE"]):
+        hora_inicio, hora_fin = bloque["HORARIO"].split(" - ")
+        BloqueHorarioDAO(conn).insert(BloqueHorario(bloque["BLOQUE"], hora_inicio, hora_fin))
+    else:
+        print(f"Bloque {bloque['BLOQUE']} ya almacenado")
+
 """Filtro de filas únicas"""
 modalidades = df_planificacion["Modalidad"].unique()
 semestres = df_planificacion["Semestre"].unique()
@@ -59,91 +67,38 @@ for seccion in secciones:
     else:
         print(f"Sección {seccion} ya almacenada")
 
+docentes = get_data(archivo, planificacion, headers_pln, skiprows_pln, "I, J")
+docentes_unicos = { (rut,docente) for rut, docente in docentes.itertuples(index=False,name=None)}
 
+for rut, docente in docentes_unicos:
+    if not DocenteDAO(conn).get_id_by_rut(rut) and rut != "-":
+        docente = str(docente).split(" ")
+        nombre = docente[:-2]
+        primer_apellido = docente[-2]
+        segundo_apellido = docente[-1]
+        DocenteDAO(conn).insert(Docente(None, rut, nombre, primer_apellido, segundo_apellido))
+    else:
+        print(f"Docente {rut} ya almacenado")
 
-"""Bloques almacenados en la BD"""
-# db_bloques = BloqueHorarioDAO(conn).get_all()
-# cods_bloques = []
-# for db_bloque in db_bloques:
-#     cods_bloques.append(db_bloque.bloque)
-#print(db_bloques)
+asignaturas = get_data(archivo, planificacion, headers_pln, skiprows_pln, "P, F, G, H")
+asignaturas_unicas = { (semestre, identificador, nombre, modalidad) for semestre, identificador, nombre, modalidad in asignaturas.itertuples(index=False,name=None)}
 
+for semestre, identificador, nombre, modalidad in asignaturas_unicas:
+    if not AsignaturaDAO(conn).get_id_by_identificador(identificador):
+        cod_mod = ModalidadDAO(conn).get_id_by_modalidad(modalidad)
+        cod_sem = SemestreDAO(conn).get_id_by_semestre(str(semestre))
+        AsignaturaDAO(conn).insert(Asignatura(None, cod_mod, cod_sem, identificador, nombre))
+    else:
+        print(f"Asignatura {identificador} ya almacenada")
 
-#
-# """Almacenado de bloques"""
-# for index, row in df_bloques.iterrows():
-#     if row["BLOQUE"] not in cods_bloques:
-#         hora_inicio, hora_fin = row["HORARIO"].split(" - ")
-#         bloque = BloqueHorario(row["BLOQUE"], hora_inicio, hora_fin)
-#         BloqueHorarioDAO(conn).insert(bloque)
-#     else:
-#         print(f"Bloque {row["BLOQUE"]} ya almacenado")
-#
-# """Modalidades almacenadas en la BD"""
-#
-#
-# """Almacenado de modalidades"""
-# for index, row in df_planificación.iterrows():
-#     db_modalidades = ModalidadDAO(conn).get_all()
-#     modalidades = []
-#     for db_modalidad in db_modalidades:
-#         modalidades.append(db_modalidad.modalidad)
-#     if row["Modalidad"] not in modalidades:
-#         modalidad = Modalidad(None, row["Modalidad"])
-#         ModalidadDAO(conn).insert(modalidad)
-#     else:
-#         print(f"Modalidad {row["Modalidad"]} ya almacenada")
-#
-# """Almacenado de semestres"""
-# for index, row in df_planificación.iterrows():
-#     db_semestres = SemestreDAO(conn).get_all()
-#     semestres = []
-#     for db_semestre in db_semestres:
-#         semestres.append(db_semestre.semestre)
-#     if row["Semestre"] not in semestres:
-#         semestre = Semestre(None, row["Semestre"])
-#         SemestreDAO(conn).insert(semestre)
-#     else:
-#         print(f"Semestre {row["Semestre"]} ya almacenado")
-#
-# no_agregados = []
-# """Almacenado de secciones"""
-# for index, row in df_planificación.iterrows():
-#     db_secciones = SeccionDAO(conn).get_all()
-#     secciones = []
-#     for db_seccion in db_secciones:
-#         secciones.append(db_seccion.seccion)
-#     if row["Sección"] not in secciones:
-#         seccion = Seccion(None, row["Sección"])
-#         if len(row["Sección"]) <= 20:
-#             SeccionDAO(conn).insert(seccion)
-#         else:
-#             if row["Sección"] not in no_agregados:
-#                 no_agregados.append(row["Sección"])
-#             print(f"Sección {row["Sección"]} no almacenada, excede el límite de caracteres")
-#     else:
-#         print(f"Sección {row["Sección"]} ya almacenada")
-#
-# print(len(df_planificación["Sección"].unique()))
-# print(len(no_agregados))
-# #print(df_bloques)
-#
-# """Almacenado de docentes"""
-# for index, row in df_planificación.iterrows():
-#     db_docentes = DocenteDAO(conn).get_all()
-#     docentes = []
-#     for db_docente in db_docentes:
-#         docentes.append(db_docente.rut)
-#     if row["Rut Docente"] not in docentes:
-#         try:
-#             descomposicion = row["Nombre Docente"].split(" ")
-#             nombre = descomposicion[:-2]
-#             primer_apellido = descomposicion[-2]
-#             segundo_apellido = descomposicion[-1]
-#             docente = Docente(None, row["Rut Docente"], nombre, primer_apellido, segundo_apellido)
-#             DocenteDAO(conn).insert(docente)
-#         except:
-#             continue
-#     else:
-#         print(f"Docente {row["Rut Docente"]} ya almacenado")
-#
+docentes_asignaturas_secciones = get_data(archivo, planificacion, headers_pln, skiprows_pln, "G, I, L")
+docentes_asignaturas_secciones_unicas = { (identificador, rut, seccion) for identificador, rut, seccion in docentes_asignaturas_secciones.itertuples(index=False,name=None)}
+
+for identificador, rut, seccion in docentes_asignaturas_secciones_unicas:
+    if not DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion):
+        cod_docente = DocenteDAO(conn).get_id_by_rut(rut)
+        cod_asig = AsignaturaDAO(conn).get_id_by_identificador(identificador)
+        cod_sec = SeccionDAO(conn).get_id_by_seccion(seccion)
+        DocenteAsignaturaSeccionDAO(conn).insert(DocenteAsignaturaSeccion(None, cod_docente, cod_asig, cod_sec))
+    else:
+        print(f"Docente {rut} asignatura {identificador} sección {seccion} ya almacenado")
