@@ -246,7 +246,7 @@ create table asignatura (
 	constraint fk_asignatura_semestre foreign key (cod_sem)
 		references semestre (cod_sem)
 		on delete cascade,
-	constraint unique_nombre_asignatura unique (nombre),
+	constraint unique_identificador_asignatura unique (identificador),
 	constraint check_nombre_asignatura check (trim(nombre) <> '')
 );
 
