@@ -139,7 +139,7 @@ create table sala (
 	capacidad int,
 	cod_edificio UUID,
 	cod_controlador UUID unique,
-	volumen int not null,
+	volumen int,
 	cod_ori UUID,
 	constraint fk_sala_edificio foreign key (cod_edificio)
 		references edificio (cod_edificio)

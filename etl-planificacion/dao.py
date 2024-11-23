@@ -324,9 +324,9 @@ class SalaDAO:
 
     def insert(self, sala):
         cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO sala (cod_edificio, cod_ori, sala, capacidad, volumen, cod_controlador) "
-                       "VALUES (%s, %s, %s, %s, %s) RETURNING cod_sala", 
-                       (sala.cod_edificio, sala.cod_ori, sala.sala, sala.capacidad, sala.volumen,sala.cod_controlador))
+        cursor.execute("INSERT INTO sala (sala) "
+                       "VALUES (%s) RETURNING cod_sala",
+                       (sala.sala,))
         sala.cod_sala = cursor.fetchone()[0]
         self.connection.commit()
     

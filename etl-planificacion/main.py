@@ -70,7 +70,7 @@ for seccion in secciones:
 
 for sala in salas:
     if not SalaDAO(conn).get_id_by_sala(str(sala)):
-        SalaDAO(conn).insert(Sala(None, None, None, sala, None, None, None))
+        SalaDAO(conn).insert(Sala(None, None, None, str(sala), None, None, None))
     else:
         print(f"Sala {sala} ya almacenada")
 
@@ -117,7 +117,7 @@ clases_unicas = { (identificador, rut, seccion, sala, fecha, bloque) for identif
 
 for identificador, rut, seccion, sala, fecha, bloque in clases_unicas:
     cod_doc_asig_sec = DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion)
-    cod_sala = SalaDAO(conn).get_id_by_sala(sala)
+    cod_sala = SalaDAO(conn).get_id_by_sala(str(sala))
     if not ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha):
         ClaseDAO(conn).insert(Clase(None, cod_doc_asig_sec, cod_sala, None, fecha))
     else:
