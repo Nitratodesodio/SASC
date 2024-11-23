@@ -103,7 +103,7 @@ docentes_asignaturas_secciones = get_data(archivo, planificacion, headers_pln, s
 docentes_asignaturas_secciones_unicas = { (identificador, rut, seccion) for identificador, rut, seccion in docentes_asignaturas_secciones.itertuples(index=False,name=None)}
 
 for identificador, rut, seccion in docentes_asignaturas_secciones_unicas:
-    if not DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion):
+    if not DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion) and rut != "-":
         cod_docente = DocenteDAO(conn).get_id_by_rut(rut)
         cod_asig = AsignaturaDAO(conn).get_id_by_identificador(identificador)
         cod_sec = SeccionDAO(conn).get_id_by_seccion(seccion)
@@ -116,15 +116,18 @@ clases = get_data(archivo, planificacion, headers_pln, skiprows_pln, "G, I, L, T
 clases_unicas = { (identificador, rut, seccion, sala, fecha, bloque) for identificador, rut, seccion, sala, fecha, bloque in clases.itertuples(index=False,name=None)}
 
 for identificador, rut, seccion, sala, fecha, bloque in clases_unicas:
-    cod_doc_asig_sec = DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion)
-    cod_sala = SalaDAO(conn).get_id_by_sala(str(sala))
-    if not ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha):
-        ClaseDAO(conn).insert(Clase(None, cod_doc_asig_sec, cod_sala, None, fecha))
-    else:
-        print(f"Clase {identificador} {rut} {seccion} {sala} {fecha} ya almacenada")
-    cod_clase = ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha)
-    cod_bloque_clase = BloqueClaseDAO(conn).get_id_by_clase_bloque(cod_clase, bloque)
-    if not cod_bloque_clase:
-        BloqueClaseDAO(conn).insert(BloqueClase(None, cod_clase, bloque))
-    else:
-        print(f"Bloque {cod_bloque_clase} ya almacenado")
+    if rut != "-":
+        cod_doc_asig_sec = DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(str(rut), str(identificador), str(seccion))
+        cod_sala = SalaDAO(conn).get_id_by_sala(str(sala))
+        if not ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha):
+            ClaseDAO(conn).insert(Clase(None, cod_doc_asig_sec, cod_sala, None, fecha))
+        else:
+            print(f"Clase {identificador} {rut} {seccion} {sala} {fecha} ya almacenada")
+        cod_clase = ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha)
+        cod_bloque_clase = BloqueClaseDAO(conn).get_id_by_clase_bloque(cod_clase, bloque)
+        if not cod_bloque_clase:
+            BloqueClaseDAO(conn).insert(BloqueClase(None, cod_clase, bloque))
+        else:
+            print(f"Bloque {cod_bloque_clase} ya almacenado")
+
+conn.close()
