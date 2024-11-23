@@ -174,7 +174,6 @@ create table modelo_ac (
 	constraint check_modelo_modelo_ac check (trim(modelo) <> '')
 );
 
-
 create table ac (
 	cod_ac UUID DEFAULT uuid_generate_v4() primary key,
 	cod_sala UUID,
@@ -286,7 +285,7 @@ create table clase (
 	cod_clase UUID DEFAULT uuid_generate_v4() primary key,
 	cod_doc_asig_sec UUID,
 	cod_sala UUID,
-	sala_real varchar (20) not null,
+	sala_real varchar (20),
 	fecha date not null,
 	constraint fk_clase_docente_asignatura_seccion foreign key (cod_doc_asig_sec)
 		references docente_asignatura_seccion (cod_doc_asig_sec)

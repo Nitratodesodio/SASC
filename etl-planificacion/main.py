@@ -48,6 +48,7 @@ for index, bloque in df_bloques.iterrows():
 modalidades = df_planificacion["Modalidad"].unique()
 semestres = df_planificacion["Semestre"].unique()
 secciones = df_planificacion["Sección"].unique()
+salas = df_planificacion["Sala Planificada"].unique()
 
 for modalidad in modalidades:
     if not ModalidadDAO(conn).get_id_by_modalidad(modalidad):
@@ -67,6 +68,13 @@ for seccion in secciones:
     else:
         print(f"Sección {seccion} ya almacenada")
 
+for sala in salas:
+    if not SalaDAO(conn).get_id_by_sala(str(sala)):
+        SalaDAO(conn).insert(Sala(None, None, None, sala, None, None, None))
+    else:
+        print(f"Sala {sala} ya almacenada")
+
+"""Almacenado de docentes, asignaturas y docentes asignaturas secciones"""
 docentes = get_data(archivo, planificacion, headers_pln, skiprows_pln, "I, J")
 docentes_unicos = { (rut,docente) for rut, docente in docentes.itertuples(index=False,name=None)}
 
@@ -102,3 +110,21 @@ for identificador, rut, seccion in docentes_asignaturas_secciones_unicas:
         DocenteAsignaturaSeccionDAO(conn).insert(DocenteAsignaturaSeccion(None, cod_docente, cod_asig, cod_sec))
     else:
         print(f"Docente {rut} asignatura {identificador} sección {seccion} ya almacenado")
+
+"""Almacenado de clases"""
+clases = get_data(archivo, planificacion, headers_pln, skiprows_pln, "G, I, L, T, Y, Z")
+clases_unicas = { (identificador, rut, seccion, sala, fecha, bloque) for identificador, rut, seccion, sala, fecha, bloque in clases.itertuples(index=False,name=None)}
+
+for identificador, rut, seccion, sala, fecha, bloque in clases_unicas:
+    cod_doc_asig_sec = DocenteAsignaturaSeccionDAO(conn).get_id_by_rut_identificador_seccion(rut, identificador, seccion)
+    cod_sala = SalaDAO(conn).get_id_by_sala(sala)
+    if not ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha):
+        ClaseDAO(conn).insert(Clase(None, cod_doc_asig_sec, cod_sala, None, fecha))
+    else:
+        print(f"Clase {identificador} {rut} {seccion} {sala} {fecha} ya almacenada")
+    cod_clase = ClaseDAO(conn).get_id_by_clase(cod_doc_asig_sec, cod_sala, fecha)
+    cod_bloque_clase = BloqueClaseDAO(conn).get_id_by_clase_bloque(cod_clase, bloque)
+    if not cod_bloque_clase:
+        BloqueClaseDAO(conn).insert(BloqueClase(None, cod_clase, bloque))
+    else:
+        print(f"Bloque {cod_bloque_clase} ya almacenado")

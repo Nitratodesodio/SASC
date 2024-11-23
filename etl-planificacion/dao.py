@@ -354,7 +354,15 @@ class SalaDAO:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM sala WHERE cod_sala = %s", (cod_sala,))
         self.connection.commit()
-    
+
+    def get_id_by_sala(self, sala):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sala FROM sala WHERE sala = %s", (sala,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
 
 class ClaseDAO:
     def __init__(self, connection):
@@ -392,6 +400,14 @@ class ClaseDAO:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM clase WHERE cod_clase = %s", (cod_clase,))
         self.connection.commit()
+
+    def get_id_by_clase(self, cod_doc_asig_sec, cod_sala, fecha):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_clase FROM clase WHERE cod_doc_asig_sec = %s AND cod_sala = %s AND fecha = %s", (cod_doc_asig_sec, cod_sala, fecha))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
 
 
 class SedeDAO:
@@ -506,3 +522,11 @@ class BloqueClaseDAO:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM bloque_clase WHERE cod_bloque_clase = %s", (cod_bloque_clase,))
         self.connection.commit()
+
+    def get_id_by_clase_bloque(self, cod_clase, bloque):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_bloque_clase FROM bloque_clase WHERE cod_clase = %s AND bloque = %s", (cod_clase, bloque))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
