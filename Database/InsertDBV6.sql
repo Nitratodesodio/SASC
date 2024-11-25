@@ -39,12 +39,12 @@ INSERT INTO comuna (nombre, cod_ciudad) VALUES
 ('Valparaíso', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Valparaíso')),
 
 -- Región Metropolitana
-('Apoquindo', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
+('Las Condes', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 ('Maipú', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 ('Renca', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 ('Ñuñoa', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
-('Santiago Centro', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
-('Santiago Sur', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
+('Santiago', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
+('Macul', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 ('La Granja', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 ('Puente Alto', (SELECT cod_ciudad FROM ciudad WHERE nombre = 'Santiago')),
 
@@ -70,8 +70,8 @@ INSERT INTO Estado (estado) VALUES
 ('Desconocido');
 
 INSERT INTO Cargo (nombre) VALUES
-('Operaciones'),
-('Finanzas'),
+('Jefe de Operaciones'),
+('Director de Administración y Finanzas'),
 ('Coordinación'),
 ('Desconocido');
 
@@ -81,15 +81,12 @@ ALTER COLUMN nombre TYPE VARCHAR(50);
 
 
 INSERT INTO Tipo_Sensor (nombre) VALUES
-('Sensor Presencia LD2410'),
+('Sensor Presencia LD2410c'),
 ('Sensor Temperatura y Humedad DHT22');
 
 
 INSERT INTO Tipo_ac (nombre) VALUES
-('Laboratorio'),
-('Sala'),
-('Taller'),
-('Techo'),
+('Cassete'),
 ('Desconocido');
 
 

@@ -20,6 +20,14 @@ class ModalidadDAO:
             return Modalidad(*row)
         return None
 
+    def get_id_by_modalidad(self, modalidad):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_mod FROM modalidad WHERE modalidad = %s", (modalidad,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
     def get_all(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT cod_mod, modalidad FROM modalidad")
@@ -56,6 +64,14 @@ class SemestreDAO:
         row = cursor.fetchone()
         if row:
             return Semestre(*row)
+        return None
+
+    def get_id_by_semestre(self, semestre):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sem FROM semestre WHERE semestre = %s", (semestre,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
         return None
 
     def get_all(self):
@@ -113,6 +129,14 @@ class AsignaturaDAO:
         cursor.execute("DELETE FROM asignatura WHERE cod_asig = %s", (cod_asig,))
         self.connection.commit()
 
+    def get_id_by_identificador(self, identificador):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_asig FROM asignatura WHERE identificador = %s", (identificador,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
 
 class SeccionDAO:
     def __init__(self, connection):
@@ -132,6 +156,14 @@ class SeccionDAO:
         row = cursor.fetchone()
         if row:
             return Seccion(*row)
+        return None
+
+    def get_id_by_seccion(self, seccion):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sec FROM seccion WHERE seccion = %s", (seccion,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
         return None
 
     def get_all(self):
@@ -170,6 +202,14 @@ class DocenteDAO:
         row = cursor.fetchone()
         if row:
             return Docente(*row)
+        return None
+
+    def get_id_by_rut(self, rut):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_docente FROM docente WHERE rut = %s", (rut,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
         return None
 
     def get_all(self):
@@ -227,6 +267,18 @@ class DocenteAsignaturaSeccionDAO:
         cursor.execute("DELETE FROM docente_asignatura_seccion WHERE cod_doc_asig_sec = %s", (cod_doc_asig_sec,))
         self.connection.commit()
 
+    def get_id_by_rut_identificador_seccion(self, rut, identificador, seccion):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_doc_asig_sec FROM docente_asignatura_seccion das "
+                       "JOIN docente d ON das.cod_docente = d.cod_docente "
+                       "JOIN asignatura a ON das.cod_asig = a.cod_asig "
+                       "JOIN seccion s ON das.cod_sec = s.cod_sec "
+                       "WHERE d.rut = %s AND a.identificador = %s AND s.seccion = %s", (rut, identificador, seccion))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
 
 class BloqueHorarioDAO:
     def __init__(self, connection):
@@ -272,15 +324,15 @@ class SalaDAO:
 
     def insert(self, sala):
         cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO sala (cod_edificio, cod_ori, numero, capacidad, volumen) "
-                       "VALUES (%s, %s, %s, %s, %s) RETURNING cod_sala", 
-                       (sala.cod_edificio, sala.cod_ori, sala.numero, sala.capacidad, sala.volumen))
+        cursor.execute("INSERT INTO sala (sala) "
+                       "VALUES (%s) RETURNING cod_sala",
+                       (sala.sala,))
         sala.cod_sala = cursor.fetchone()[0]
         self.connection.commit()
     
     def get_by_id(self, cod_sala):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sala, cod_edificio, cod_ori, numero, capacidad, volumen FROM sala WHERE cod_sala = %s", (cod_sala,))
+        cursor.execute("SELECT  FROM sala WHERE cod_sala = %s", (cod_sala,))
         row = cursor.fetchone()
         if row:
             return Sala(*row)
@@ -288,21 +340,29 @@ class SalaDAO:
     
     def get_all(self):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sala, cod_edificio, cod_ori, numero, capacidad, volumen FROM sala")
+        cursor.execute("SELECT cod_sala, cod_edificio, cod_ori, sala, capacidad, volumen, cod_controlador FROM sala")
         rows = cursor.fetchall()
         return [Sala(*row) for row in rows]
     
     def update(self, sala):
         cursor = self.connection.cursor()
-        cursor.execute("UPDATE sala SET cod_edificio = %s, cod_ori = %s, numero = %s, capacidad = %s, volumen = %s WHERE cod_sala = %s", 
-                       (sala.cod_edificio, sala.cod_ori, sala.numero, sala.capacidad, sala.volumen, sala.cod_sala))
+        cursor.execute("UPDATE sala SET cod_edificio = %s, cod_ori = %s, sala = %s, capacidad = %s, volumen = %s, cod_controlador = %s WHERE cod_sala = %s",
+                       (sala.cod_edificio, sala.cod_ori, sala.sala, sala.capacidad, sala.volumen, sala.cod_controlador, sala.cod_sala))
         self.connection.commit()
 
     def delete(self, cod_sala):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM sala WHERE cod_sala = %s", (cod_sala,))
         self.connection.commit()
-    
+
+    def get_id_by_sala(self, sala):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_sala FROM sala WHERE sala = %s", (sala,))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
 
 class ClaseDAO:
     def __init__(self, connection):
@@ -310,15 +370,15 @@ class ClaseDAO:
 
     def insert(self, clase):
         cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO clase (cod_doc_asig_sec, cod_sala, bloque, sala_real, fecha) "
-                       "VALUES (%s, %s, %s, %s, %s) RETURNING cod_clase", 
-                       (clase.cod_doc_asig_sec, clase.cod_sala, clase.bloque, clase.sala_real, clase.fecha))
+        cursor.execute("INSERT INTO clase (cod_doc_asig_sec, cod_sala, sala_real, fecha) "
+                       "VALUES (%s, %s, %s, %s) RETURNING cod_clase",
+                       (clase.cod_doc_asig_sec, clase.cod_sala, clase.sala_real, clase.fecha))
         clase.cod_clase = cursor.fetchone()[0]
         self.connection.commit()
     
     def get_by_id(self, cod_clase):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_clase, cod_doc_asig_sec, cod_sala, bloque, sala_real, fecha FROM clase WHERE cod_clase = %s", (cod_clase,))
+        cursor.execute("SELECT cod_clase, cod_doc_asig_sec, cod_sala, sala_real, fecha FROM clase WHERE cod_clase = %s", (cod_clase,))
         row = cursor.fetchone()
         if row:
             return Clase(*row)
@@ -326,20 +386,28 @@ class ClaseDAO:
     
     def get_all(self):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_clase, cod_doc_asig_sec, cod_sala, bloque, sala_real, fecha FROM clase")
+        cursor.execute("SELECT cod_clase, cod_doc_asig_sec, cod_sala, sala_real, fecha FROM clase")
         rows = cursor.fetchall()
         return [Clase(*row) for row in rows]
     
     def update(self, clase):
         cursor = self.connection.cursor()
-        cursor.execute("UPDATE clase SET cod_doc_asig_sec = %s, cod_sala = %s, bloque = %s, sala_real = %s, fecha = %s WHERE cod_clase = %s", 
-                       (clase.cod_doc_asig_sec, clase.cod_sala, clase.bloque, clase.sala_real, clase.fecha, clase.cod_clase))
+        cursor.execute("UPDATE clase SET cod_doc_asig_sec = %s, cod_sala = %s, sala_real = %s, fecha = %s WHERE cod_clase = %s",
+                       (clase.cod_doc_asig_sec, clase.cod_sala, clase.sala_real, clase.fecha, clase.cod_clase))
         self.connection.commit()
 
     def delete(self, cod_clase):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM clase WHERE cod_clase = %s", (cod_clase,))
         self.connection.commit()
+
+    def get_id_by_clase(self, cod_doc_asig_sec, cod_sala, fecha):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_clase FROM clase WHERE cod_doc_asig_sec = %s AND cod_sala = %s AND fecha = %s", (cod_doc_asig_sec, cod_sala, fecha))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
 
 
 class SedeDAO:
@@ -348,15 +416,15 @@ class SedeDAO:
 
     def insert(self, sede):
         cursor = self.connection.cursor()
-        cursor.execute("INSERT INTO sede (nombre) "
-                       "VALUES (%s) RETURNING cod_sede", 
-                       (sede.nombre,))
+        cursor.execute("INSERT INTO sede (nombre, cod_comuna) "
+                       "VALUES (%s, %s) RETURNING cod_sede",
+                       (sede.nombre, sede.cod_comuna))
         sede.cod_sede = cursor.fetchone()[0]
         self.connection.commit()
 
     def get_by_id(self, cod_sede):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sede, nombre FROM sede WHERE cod_sede = %s", (cod_sede,))
+        cursor.execute("SELECT cod_sede, nombre, cod_comuna FROM sede WHERE cod_sede = %s", (cod_sede,))
         row = cursor.fetchone()
         if row:
             return Sede(*row)
@@ -364,14 +432,14 @@ class SedeDAO:
 
     def get_all(self):
         cursor = self.connection.cursor()
-        cursor.execute("SELECT cod_sede, nombre FROM sede")
+        cursor.execute("SELECT cod_sede, nombre, cod_comuna FROM sede")
         rows = cursor.fetchall()
         return [Sede(*row) for row in rows]
 
     def update(self, sede):
         cursor = self.connection.cursor()
-        cursor.execute("UPDATE sede SET nombre = %s WHERE cod_sede = %s", 
-                       (sede.nombre, sede.cod_sede))
+        cursor.execute("UPDATE sede SET nombre = %s, cod_comuna = %s WHERE cod_sede = %s",
+                       (sede.nombre,sede.cod_comuna, sede.cod_sede))
         self.connection.commit()
 
     def delete(self, cod_sede):
@@ -416,3 +484,49 @@ class EdificioDAO:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM edificio WHERE cod_edificio = %s", (cod_edificio,))
         self.connection.commit()
+
+
+class BloqueClaseDAO:
+    def __init__(self, connection):
+        self.connection = connection
+
+    def insert(self, bloque_clase):
+        cursor = self.connection.cursor()
+        cursor.execute("INSERT INTO bloque_clase (cod_clase, bloque) "
+                       "VALUES (%s, %s) RETURNING cod_bloque_clase",
+                       (bloque_clase.cod_clase, bloque_clase.bloque))
+        bloque_clase.cod_bloque_clase = cursor.fetchone()[0]
+        self.connection.commit()
+
+    def get_by_id(self, cod_bloque_clase):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_bloque_clase, cod_clase, bloque FROM bloque_clase WHERE cod_bloque_clase = %s", (cod_bloque_clase,))
+        row = cursor.fetchone()
+        if row:
+            return BloqueClase(*row)
+        return None
+
+    def get_all(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_bloque_clase, cod_clase, bloque FROM bloque_clase")
+        rows = cursor.fetchall()
+        return [BloqueClase(*row) for row in rows]
+
+    def update(self, bloque_clase):
+        cursor = self.connection.cursor()
+        cursor.execute("UPDATE bloque_clase SET cod_clase = %s, bloque = %s WHERE cod_bloque_clase = %s",
+                       (bloque_clase.cod_clase, bloque_clase.bloque, bloque_clase.cod_bloque_clase))
+        self.connection.commit()
+
+    def delete(self, cod_bloque_clase):
+        cursor = self.connection.cursor()
+        cursor.execute("DELETE FROM bloque_clase WHERE cod_bloque_clase = %s", (cod_bloque_clase,))
+        self.connection.commit()
+
+    def get_id_by_clase_bloque(self, cod_clase, bloque):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT cod_bloque_clase FROM bloque_clase WHERE cod_clase = %s AND bloque = %s", (cod_clase, bloque))
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 col-lg-8 col-md-10 col-sm-12 ms-2">
+    <div class="row align-items-start justify-content-center gap-3">
+      <!-- Contenedor del perfil -->
+      <div class="col-lg-6 col-md-12 rounded shadow p-4 mb-3 mt-4 change-colors">
+        <!-- Foto circular -->
+        <div class="d-flex flex-column flex-md-row align-items-center">
+          <div class="me-3">
+            <img src="https://via.placeholder.com/80" alt="Foto" class="rounded-circle" width="80" height="80">
+          </div>
+          <!-- Información del perfil -->
+          <div class="d-flex flex-column flex-grow-1">
+            <h5 class="mb-1"><b>Nombre Completo</b></h5>
+            <p class="mb-1"><b>Cargo:</b> <span>Tu Cargo</span></p>
+            <p class="mb-1"><b>Correo:</b> <span>tucorreo@institucion.edu</span></p>
+            <p class="mb-1"><b>Usuario:</b> <span>nombre_usuario</span></p>
+            <p class="mb-1"><b>Contraseña:</b> <span>********</span></p>
+          </div>
+          <div class="text-center justify-content-center mt-3" style="height: 20px;">
+            <button type="button" class="btn btn-primary button">ACTUALIZAR DATOS</button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Contenedor para la temperatura -->
+      <div class="col-lg-3 col-md-12 bg-info rounded shadow text-white p-4 mt-4 mb-4">
+        <div class="text-center">
+          <h5>Clima Actual<br>San joaquín</h5>
+          <div class="fs-1">13°C</div>
+          <p>Soleado</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<!--{% if user == 'Jefe de Operaciones' %}-->  
+<div class="container mt-4 col-lg-8 col-md-8 col-sm-10 ms-2">
+  <div class="row align-items-start justify-content-center gap-3">
+      <div class="col-12 p-4 justify-content-center rounded change-colors">
+        <h5 class="mb-1 text-center"><b>SUBIR PLANIFICACIÓN</b></h5>
+        <div class="text-center" style="height: 50px;">
+          <button type="button" class="btn btn-primary button">CARGAR PLANIFICACIÓN</button>
+        </div>
+        <p class="mb-1 text-center">Subir la planificación de clases de una semana, debe estar contenido en un archivo con extensión .xlsx</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!--{% endif %}-->
+
+ 
+  
+  
+{% endblock content %}

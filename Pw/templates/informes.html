@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 col-lg-8 col-md-8 col-sm-10 ms-2">
+    <div class="row align-items-start justify-content-center gap-3">
+        <div class="col p-4 justify-content-center customer-color">
+            <div class="text title-text">
+                <span class="title"><b>INFORMES</b></span>
+            </div>
+            <div class="row mt-4 justify-content-center">
+              <div class="col-12 p-4 text-white rounded change-colors">
+                <div class="row mt-4">
+                  <div class="col-12 text-center">
+                    <div class="p-4 text-white rounded change-colors">
+                      <p class="mb-0">Seleccione Tipo de Informe:</p>
+                      <select name="informes" class="menu-inf">
+                        <option>Electricidad</option>
+                        <option>Clases</option>
+                        <option>Climatización</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                  <div class="row mt-4">
+                    <div class="col-6 text-center">
+                      <div class="p-4 text-white rounded change-colors">
+                        <p class="mb-0">Ingrese Fecha de Inicio</p>
+                        <input type="date" class="calendario">
+                      </div>
+                    </div>
+                    <div class="col-6 text-center">
+                      <div class="p-4 text-white rounded change-colors">
+                        <p class="mb-0">Ingrese Fecha de Término</p>
+                        <input type="date" class="calendario">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-center justify-content-center mt-3" style="height: 20px;">
+                    <button type="button" class="btn btn-primary button">GENERAR INFORME</button>
+                  </div>
+              </div>
+            
+          </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

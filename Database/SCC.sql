@@ -119,18 +119,10 @@ create table sensor (
 create table lectura (
 	cod_lectura UUID DEFAULT uuid_generate_v4() primary key,
 	cod_sensor UUID,
+	valor float,
 	fecha_hora timestamp not null,
 	constraint fk_lectura_sensor foreign key (cod_sensor) 
 		references sensor (cod_sensor)
-		on delete cascade
-);
-
-create table valor_lectura (
-	cod_valor UUID DEFAULT uuid_generate_v4() primary key,
-	cod_lectura UUID,
-	valor int not null,
-	constraint fk_valor_lectura_lectura foreign key (cod_lectura) 
-		references lectura (cod_lectura)
 		on delete cascade
 );
 
@@ -147,7 +139,7 @@ create table sala (
 	capacidad int,
 	cod_edificio UUID,
 	cod_controlador UUID unique,
-	volumen int not null,
+	volumen int,
 	cod_ori UUID,
 	constraint fk_sala_edificio foreign key (cod_edificio)
 		references edificio (cod_edificio)
@@ -182,19 +174,13 @@ create table modelo_ac (
 	constraint check_modelo_modelo_ac check (trim(modelo) <> '')
 );
 
-create table btu_ac (
-	cod_btu UUID DEFAULT uuid_generate_v4() primary key,
-	valor int not null,
-	constraint check_valor_btu_ac check (valor > 0)
-);
-
 create table ac (
 	cod_ac UUID DEFAULT uuid_generate_v4() primary key,
 	cod_sala UUID,
 	cod_tipo UUID,
 	cod_marca UUID,
 	cod_modelo UUID,
-	cod_btu UUID,
+	btu int,
 	constraint fk_ac_sala foreign key (cod_sala)
 		references sala (cod_sala)
 		on delete cascade,
@@ -206,9 +192,6 @@ create table ac (
 		on delete cascade,
 	constraint fk_ac_modelo_ac foreign key (cod_modelo)
 		references modelo_ac(cod_modelo)
-		on delete cascade,
-	constraint fk_ac_btu_ac foreign key (cod_btu)
-		references btu_ac(cod_btu)
 		on delete cascade
 );
 
@@ -246,9 +229,8 @@ create table seccion (
 
 create table semestre (
 	cod_sem UUID DEFAULT uuid_generate_v4() primary key,
-	semestre int not null,
-	constraint unique_semestre_semestre unique (semestre),
-	constraint check_semestre_semestre check (semestre > 0)
+	semestre varchar (20) not null,
+	constraint unique_semestre_semestre unique (semestre)
 );
 
 create table asignatura (
@@ -263,7 +245,7 @@ create table asignatura (
 	constraint fk_asignatura_semestre foreign key (cod_sem)
 		references semestre (cod_sem)
 		on delete cascade,
-	constraint unique_nombre_asignatura unique (nombre),
+	constraint unique_identificador_asignatura unique (identificador),
 	constraint check_nombre_asignatura check (trim(nombre) <> '')
 );
 
@@ -303,19 +285,26 @@ create table clase (
 	cod_clase UUID DEFAULT uuid_generate_v4() primary key,
 	cod_doc_asig_sec UUID,
 	cod_sala UUID,
-	sala_real varchar (20) not null,
-	bloque int,
+	sala_real varchar (20),
 	fecha date not null,
 	constraint fk_clase_docente_asignatura_seccion foreign key (cod_doc_asig_sec)
 		references docente_asignatura_seccion (cod_doc_asig_sec)
 		on delete cascade,
 	constraint fk_clase_sala foreign key (cod_sala)
 		references sala (cod_sala)
-		on delete cascade,
-	constraint fk_clase_bloque_horario foreign key (bloque)
-		references bloque_horario (bloque)
 		on delete cascade
 );
 
+create table bloque_clase(
+	cod_bloque_clase UUID DEFAULT uuid_generate_v4() primary key,
+	bloque int not null ,
+	cod_clase UUID not null ,
+	constraint fk_bloque_clase_bloque foreign key (bloque)
+		references bloque_horario (bloque)
+		on delete cascade,
+	constraint fk_bloque_clase_clase foreign key (cod_clase)
+		references clase (cod_clase)
+		on delete cascade
+);
 
 
