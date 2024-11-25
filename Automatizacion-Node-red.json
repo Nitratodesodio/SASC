@@ -37,8 +37,8 @@
         "type": "postgresql",
         "z": "f8b29b715bb8b2c9",
         "name": "",
-        "query": "SELECT \n    Clase.cod_clase,\n    Clase.sala_real,\n    Clase.fecha,\n    Bloque_horario.hora_inicio,\n    Bloque_horario.hora_fin\nFROM \n    Clase\nINNER JOIN \n    Bloque_horario ON Clase.bloque = Bloque_horario.bloque\nWHERE \n    Clase.fecha = CURRENT_DATE;\n",
-        "postgreSQLConfig": "b2cd7032c28babb3",
+        "query": "SELECT \n    c.cod_clase,\n    c.fecha,\n    s.sala,\n    MIN(bh.hora_inicio) AS hora_inicio,\n    MAX(bh.hora_fin) AS hora_fin\nFROM \n    clase c\nINNER JOIN \n    bloque_clase bc ON c.cod_clase = bc.cod_clase\nINNER JOIN \n    bloque_horario bh ON bc.bloque = bh.bloque\nINNER JOIN \n    sala s ON c.cod_sala = s.cod_sala\nWHERE \n    c.fecha = CURRENT_DATE\nGROUP BY \n    c.cod_clase, c.fecha, s.sala;\n",
+        "postgreSQLConfig": "1fab8f994da93029",
         "split": false,
         "rowsPerMsg": 1,
         "outputs": 1,
@@ -177,7 +177,7 @@
         "type": "function",
         "z": "f8b29b715bb8b2c9",
         "name": "Filtrar Por Iniciar",
-        "func": "// Obtener la lista global de clases \"Por Iniciar\"\nlet porIniciar = global.get(\"PorIniciar\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Por Iniciar\"\nlet salaEnLista = porIniciar.some(record => record.sala_real == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
+        "func": "// Obtener la lista global de clases \"Por Iniciar\"\nlet porIniciar = global.get(\"PorIniciar\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Por Iniciar\"\nlet salaEnLista = porIniciar.some(record => record.sala == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -292,7 +292,7 @@
         "type": "function",
         "z": "f8b29b715bb8b2c9",
         "name": "Filtrar por salas en clases ",
-        "func": "// Obtener la lista global de clases \"Iniciadas\"\nlet iniciada = global.get(\"Iniciada\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Iniciadas\"\nlet salaEnLista = iniciada.some(record => record.sala_real == sala);\n\n// Si la sala no está en \"Iniciadas\", bloquear el mensaje\nif (!salaEnLista) {\n    return null;\n}\n\n// Umbral de temperatura\nconst tempIdeal = 21;\nconst tolerancia = 1; // Margen de +/- 1°C\n\n// Obtener el tipo de dato (presencia o temperatura) del tópico\nlet tipo = msg.topic.split(\"/\")[1];\n\n// Obtener el estado actual de la sala del contexto de flujo\nlet estado = flow.get(sala) || { temperatura: null, presencia: \"0\", contadorAusencia: 0 };\n\n// Actualizar el estado según el tipo de dato recibido\nif (tipo === \"temp\") {\n    estado.temperatura = parseFloat(msg.payload); // Guardar temperatura\n} else if (tipo === \"pres\") {\n    estado.presencia = msg.payload; // Guardar presencia (\"1\" para presente, \"0\" para ausente)\n}\n\n// Decisiones:\nif (estado.presencia.includes(\"Stationary target\")) {\n\n        return {\n            payload: \"ON\",\n            topic: sala // Enviar comando \"ON\" al tópico de la sala\n        };\n    \n} else {\n    // Si no hay presencia, incrementar el contador de ausencia\n    estado.contadorAusencia += 1;\n\n    // Si el contador alcanza o supera los 10 ciclos, enviar \"OFF\"\n    if (estado.contadorAusencia >= 10) {\n        estado.contadorAusencia = 0; // Reiniciar el contador\n        flow.set(sala, estado); // Guardar el estado actualizado\n\n        return {\n            payload: \"OFF\",\n            topic: sala // Enviar comando \"OFF\" al tópico de la sala\n        };\n    }\n}\n\n// Guardar el estado actualizado\nflow.set(sala, estado);\n\n// No hacer nada si no se cumple ninguna condición\nreturn null;\n",
+        "func": "// Obtener la lista global de clases \"Iniciadas\"\nlet iniciada = global.get(\"Iniciada\") || [];\n\n// Extraer el número de sala del tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"Iniciadas\"\nlet salaEnLista = iniciada.some(record => record.sala == sala);\n\n// Si la sala no está en \"Iniciadas\", bloquear el mensaje\nif (!salaEnLista) {\n    return null;\n}\n\n// Umbral de temperatura\nconst tempIdeal = 21;\nconst tolerancia = 1; // Margen de +/- 1°C\n\n// Obtener el tipo de dato (presencia o temperatura) del tópico\nlet tipo = msg.topic.split(\"/\")[1];\n\n// Obtener el estado actual de la sala del contexto de flujo\nlet estado = flow.get(sala) || { temperatura: null, presencia: \"0\", contadorAusencia: 0 };\n\n// Actualizar el estado según el tipo de dato recibido\nif (tipo === \"temp\") {\n    estado.temperatura = parseFloat(msg.payload); // Guardar temperatura\n} else if (tipo === \"pres\") {\n    estado.presencia = msg.payload; // Guardar presencia (\"1\" para presente, \"0\" para ausente)\n}\n\n// Decisiones:\nif (estado.presencia.includes(\"Stationary target\")) {\n\n        return {\n            payload: \"ON\",\n            topic: sala // Enviar comando \"ON\" al tópico de la sala\n        };\n    \n} else {\n    // Si no hay presencia, incrementar el contador de ausencia\n    estado.contadorAusencia += 1;\n\n    // Si el contador alcanza o supera los 10 ciclos, enviar \"OFF\"\n    if (estado.contadorAusencia >= 10) {\n        estado.contadorAusencia = 0; // Reiniciar el contador\n        flow.set(sala, estado); // Guardar el estado actualizado\n\n        return {\n            payload: \"OFF\",\n            topic: sala // Enviar comando \"OFF\" al tópico de la sala\n        };\n    }\n}\n\n// Guardar el estado actualizado\nflow.set(sala, estado);\n\n// No hacer nada si no se cumple ninguna condición\nreturn null;\n",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -354,8 +354,8 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 240,
-        "y": 500,
+        "x": 340,
+        "y": 660,
         "wires": [
             [
                 "039391d81cea216c"
@@ -367,19 +367,18 @@
         "type": "function",
         "z": "f8b29b715bb8b2c9",
         "name": "Filtrar No Iniciadas",
-        "func": "// Obtener la lista global de clases \"No Iniciada\"\nlet noIniciada = global.get(\"NoIniciada\") || [];\n\n// Obtener el número de sala desde el tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"No Iniciada\"\nlet salaEnLista = noIniciada.some(record => record.sala_real == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
+        "func": "// Obtener la lista global de clases \"No Iniciada\"\nlet noIniciada = global.get(\"NoIniciada\") || [];\n\n// Obtener el número de sala desde el tópico\nlet sala = msg.topic.split(\"/\")[0];\n\n// Verificar si la sala está en la lista \"No Iniciada\"\nlet salaEnLista = noIniciada.some(record => record.sala == sala);\n\nif (salaEnLista) {\n    return msg; // Dejar pasar el mensaje\n} else {\n    return null; // Bloquear el mensaje\n}",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 480,
-        "y": 500,
+        "x": 580,
+        "y": 660,
         "wires": [
             [
-                "9695865ee5384db1",
-                "aa42d72b96a2e8dc"
+                "9695865ee5384db1"
             ]
         ]
     },
@@ -395,11 +394,12 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 770,
-        "y": 500,
+        "x": 870,
+        "y": 660,
         "wires": [
             [
-                "8299471e4e01dba7"
+                "8299471e4e01dba7",
+                "aa42d72b96a2e8dc"
             ]
         ]
     },
@@ -417,8 +417,8 @@
         "correl": "",
         "expiry": "",
         "broker": "5322238dbb9749db",
-        "x": 1060,
-        "y": 500,
+        "x": 1160,
+        "y": 660,
         "wires": []
     },
     {
@@ -433,19 +433,179 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 720,
-        "y": 640,
+        "x": 1120,
+        "y": 780,
         "wires": []
     },
     {
-        "id": "b2cd7032c28babb3",
+        "id": "3bad675576299330",
+        "type": "mqtt in",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "topic": "config/+",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "b9b903d61988a55f"
+            ]
+        ]
+    },
+    {
+        "id": "2b3fbe3c21ea2238",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 18",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "b9b903d61988a55f",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "extraer mac",
+        "func": "// Obtener la dirección MAC de entrada\nvar macAddress = msg.payload;\n\n// Eliminar caracteres no válidos y convertir a mayúsculas\nmacAddress = macAddress.replace(/[^a-fA-F0-9]/g, '').toUpperCase();\n\n// Agregar los dos puntos para coincidir con el formato de la variable global\nif (macAddress.length === 12) {\n    macAddress = macAddress.match(/.{1,2}/g).join(':'); // Formato XX:XX:XX:XX:XX:XX\n} else {\n    node.warn(\"Dirección MAC inválida: \" + macAddress);\n    msg.payload = { error: \"Dirección MAC inválida\" };\n    return msg;\n}\n\n// Obtener la lista de MACs desde la variable global\nvar macList = global.get('mac') || [];\n\n// Buscar la dirección MAC en la lista\nvar entry = macList.find(e => e.mac === macAddress);\n\n// Verificar si se encontró una coincidencia\nif (entry) {\n    // Recuperar el número de sala asociado\n    var sala = entry.sala;\n\n    // Eliminar los dos puntos de la MAC para usarla como nombre del tópico\n    var topic = macAddress.replace(/:/g, ''); // XX:XX:XX:XX:XX:XX → XXXXXXXXXXXX\n\n    // Crear el mensaje a enviar\n    msg.topic = \"config/\"+topic; // Tópico sin los dos puntos\n    msg.payload = sala// Contenido del mensaje\n\n    \n    return {\n        payload: msg.payload,\n        topic: msg.topic,\n    };\n} else {\n    node.warn(\"MAC no encontrada en la lista: \" + macAddress);\n    msg.payload = { error: \"MAC no encontrada\" };\n    return msg;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 440,
+        "wires": [
+            [
+                "2b3fbe3c21ea2238",
+                "78e426048c5b8697"
+            ]
+        ]
+    },
+    {
+        "id": "11b455a2d10fbcf4",
+        "type": "postgresql",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "query": "SELECT \n    sala.sala,\n    sala.cod_controlador,\n    controlador.mac\nFROM \n    sala\nLEFT JOIN \n    controlador\nON \n    sala.cod_controlador = controlador.cod_controlador\nORDER BY \n    sala.sala ASC;\n",
+        "postgreSQLConfig": "1fab8f994da93029",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 390,
+        "y": 300,
+        "wires": [
+            [
+                "8ace8e352c7349ed"
+            ]
+        ]
+    },
+    {
+        "id": "78e426048c5b8697",
+        "type": "mqtt out",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 750,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "b95d70cbf8dc958e",
+        "type": "inject",
+        "z": "f8b29b715bb8b2c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "11b455a2d10fbcf4"
+            ]
+        ]
+    },
+    {
+        "id": "8ace8e352c7349ed",
+        "type": "function",
+        "z": "f8b29b715bb8b2c9",
+        "name": "guardar macs",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('mac', msg.payload);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'mac'\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 300,
+        "wires": [
+            [
+                "8efccf3356bae49d"
+            ]
+        ]
+    },
+    {
+        "id": "8efccf3356bae49d",
+        "type": "debug",
+        "z": "f8b29b715bb8b2c9",
+        "name": "debug 19",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "1fab8f994da93029",
         "type": "postgreSQLConfig",
-        "name": "Obtener clases",
+        "name": "",
         "host": "127.0.0.1",
         "hostFieldType": "str",
         "port": "5432",
         "portFieldType": "num",
-        "database": "SCC_TEST_CLASES",
+        "database": "SCC",
         "databaseFieldType": "str",
         "ssl": "false",
         "sslFieldType": "bool",
