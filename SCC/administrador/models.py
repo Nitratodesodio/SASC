@@ -11,9 +11,7 @@ class Zona(models.Model):
     nombre = models.CharField(unique=True, max_length=20)
 
     class Meta:
-        managed = False
         db_table = 'zona'
-
 
 class Ciudad(models.Model):
     cod_ciudad = models.UUIDField(primary_key=True)
@@ -21,9 +19,7 @@ class Ciudad(models.Model):
     cod_zona = models.ForeignKey('Zona', models.DO_NOTHING, db_column='cod_zona', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'ciudad'
-
 
 class Comuna(models.Model):
     cod_comuna = models.UUIDField(primary_key=True)
@@ -31,7 +27,6 @@ class Comuna(models.Model):
     cod_ciudad = models.ForeignKey(Ciudad, models.DO_NOTHING, db_column='cod_ciudad', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'comuna'
 
 

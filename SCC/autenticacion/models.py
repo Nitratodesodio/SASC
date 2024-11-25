@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+import uuid
 from administrador.models import Sede
 
 
@@ -15,11 +15,18 @@ class UsuarioManager(BaseUserManager):
         if not cod_cargo:
             raise ValueError('El usuario debe tener un cargo')
 
+        # Obtener la instancia de Cargo usando el UUID
+        from autenticacion.models import Cargo
+        try:
+            cargo = Cargo.objects.get(cod_cargo=cod_cargo)
+        except Cargo.DoesNotExist:
+            raise ValueError('El cargo especificado no existe')
+
         user = self.model(
-            rut = rut,
-            nombre = nombre,
-            usuario = usuario,
-            cod_cargo = cod_cargo,
+            rut=rut,
+            nombre=nombre,
+            usuario=usuario,
+            cod_cargo=cargo,  # Ahora pasamos la instancia de Cargo
         )
 
         user.set_password(password)
@@ -28,16 +35,16 @@ class UsuarioManager(BaseUserManager):
 
     def create_superuser(self, rut, nombre, usuario, cod_cargo, password):
         user = self.create_user(
-            rut = rut,
-            nombre = nombre,
-            usuario = usuario,
-            cod_cargo = cod_cargo,
-            password = password,
+            rut=rut,
+            nombre=nombre,
+            usuario=usuario,
+            cod_cargo=cod_cargo,
+            password=password,
         )
         user.is_admin = True
         user.save(using=self._db)
         return user
-
+    
 # Create your models here.
 class Cargo(models.Model):
     cod_cargo = models.UUIDField(primary_key=True)
@@ -50,7 +57,7 @@ class Cargo(models.Model):
 
 
 class Usuario(AbstractBaseUser):
-    cod_usuario = models.UUIDField(primary_key=True)
+    cod_usuario = models.UUIDField(primary_key=True, default=uuid.uuid4)
     rut = models.CharField("Rut",max_length=10, unique=True)
     nombre = models.CharField("Nombre de usuario",max_length=40)
     usuario = models.EmailField("Correo electrónico",max_length=255, unique=True)
@@ -62,7 +69,7 @@ class Usuario(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'usuario'
-    REQUIRED_FIELDS = ['rut','nombre',' cod_cargo']
+    REQUIRED_FIELDS = ['rut','nombre','cod_cargo']
 
     def __str__(self):
         return self.nombre
