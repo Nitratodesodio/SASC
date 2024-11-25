@@ -15,6 +15,7 @@
     --primary-color-light:#f6f5ff;
     --toggle-color:#ddd;
     --text-color:#707070;
+    --primary-color-grey:#C7C7C8;
 
     /*=== Transiciones ===*/
     --tran-02: all 0.2s ease;
@@ -36,6 +37,7 @@ body.dark{
     --primary-color-light:#3a3b3c;
     --toggle-color:#fff;
     --text-color:#ccc;
+    --primary-color-grey:#313234;
 }
 
 /* === sidebar === */
@@ -147,12 +149,11 @@ header .image-text .header-text{
     transition: var(--tran-03);
 }
 
-.sidebar.close .toggle{
+.sidebar.close header .toggle{
     transform: translateY(-50%);
 }
 
 body.dark .sidebar header .toggle{
-    transform: rotate(180deg);
     color: var(--text-color);
 }
 
@@ -256,92 +257,90 @@ body.dark .switch::before{
     left: 24px;
 }
 
-/*=== Perfil ===*/
-
-.contenido{
-    position: relative;
-    left: 250px;
-    height: 100vh;
-    width: calc(100% - 25px);
-    color: var(--sidebar-color);
-    transition: var(--tran-05);
-    border-radius: 8px;
-}
-
-.contenido .section{
-    font-size: 30px;
-    font-weight: 500;
-    color: var(--text-color);
-    padding: 8px 40px;
-}
-
-.sidebar.close ~ .contenido{
+.container{
+    max-width: 90%;
+    width: auto;
+    height: auto;
     left: 88px;
-    width: calc(100% - 88px);
-}
-
-.contenido .perfil{
-    height: 50%;
-    width: 75%;
-    margin-left: 40px;
     border-radius: 8px;
+    position: relative;
     background: var(--sidebar-color);
     transition: var(--tran-05);
+    overflow: hidden;
 }
 
-.perfil .imagen-text img{
-    width: 200px;
-    border-radius: 8px;
-}
-
-.perfil .imagen-text{
-    display: flex;
-    align-items: center;
-}
-
-.imagen-text .perfil-text{
-    display: flex;
-    flex-direction: column;
-}
-
-.perfil-text{
-    font-size: 600;
-    margin-top: -3px;
-    color: var(--text-color);
-}
-
-/*=== dashboard === */
-.contenidoD{
-    position: relative;
-    left: 250px;
-    height: 100vh;
-    width: calc(100% - 25px);
-    color: var(--sidebar-color);
-    transition: var(--tran-05);
-    border-radius: 8px;
-}
-
-.contenidoD .section{
-    font-size: 30px;
-    font-weight: 500;
-    color: var(--text-color);
-    padding: 8px 40px;
-}
-
-.sidebar.close ~ .contenidoD{
+.sidebar.close ~.container{
     left: 88px;
     width: calc(100% - 88px);
 }
 
-.contenidoD .dashboard{
-    margin-left: 25px;
-    width: 200px;
-    height: 600px;
-    display: flex;
+@media (max-width: 768px) {
+    .d-flex > div {
+      margin-bottom: 10px; 
+    }
+}
+.change.color{
+    background: var(--primary-color-light);
 }
 
-.dashboard{
-    position: relative;
-    width: 30%;
-    gap: 20px;
+.title-text .title{
+    display: flex;
+    justify-content: center;
+    font-size: 30px;
+    color: var(--text-color);
+}
+
+.sidebar li a:hover .text{
+    color: var(--sidebar-color);
+}
+
+.change-colors{
+    color: var(--text-color);
+    background: var(--primary-color-grey);
+}
+
+.change{
+    background: var(--primary-color-grey);
+}
+
+.button{
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 50px;
+}
+
+.calendario{
+    border-radius: 8px;
+    border-color: var(--sidebar-color);
+    background: var(--sidebar-color);
+    color: var(--text-color);
+    width: 200px;
+    text-align: center;
+    border-width: 0cap;
+}
+
+.menu-inf{
+    border-radius: 8px;
+    border-color: var(--sidebar-color);
+    background: var(--sidebar-color);
+    color: var(--text-color);
+    width: 200px;
+    text-align: center;
+    border-width: 0cap;
+}
+
+.table{
+    color: var(--text-color);
+    background: var(--primary-color-grey);
+}
+
+.custom-table td,
+.custom-table th{
+    color: var(--text-color);
+}
+
+.custom-table thead,
+.custom-table tbody{
+    background: var(--primary-color-grey);
+    border-color: var(--text-color);
 }
