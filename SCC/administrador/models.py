@@ -38,7 +38,6 @@ class Clima(models.Model):
     cod_comuna = models.ForeignKey('Comuna', models.DO_NOTHING, db_column='cod_comuna', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'clima'
 
 
@@ -58,7 +57,6 @@ class Edificio(models.Model):
     cod_sede = models.ForeignKey(Sede, models.DO_NOTHING, db_column='cod_sede', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'edificio'
 
 
@@ -67,7 +65,6 @@ class Controlador(models.Model):
     mac = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        managed = False
         db_table = 'controlador'
 
 
@@ -76,7 +73,6 @@ class TipoSensor(models.Model):
     nombre = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        managed = False
         db_table = 'tipo_sensor'
 
 
@@ -86,7 +82,6 @@ class Sensor(models.Model):
     cod_controlador = models.ForeignKey(Controlador, models.DO_NOTHING, db_column='cod_controlador', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'sensor'
 
 
@@ -97,7 +92,6 @@ class Lectura(models.Model):
     fecha_hora = models.DateTimeField()
 
     class Meta:
-        managed = False
         db_table = 'lectura'
 
 
@@ -106,7 +100,6 @@ class Orientacion(models.Model):
     orientacion = models.CharField(unique=True, max_length=25)
 
     class Meta:
-        managed = False
         db_table = 'orientacion'
 
 
@@ -120,7 +113,6 @@ class Sala(models.Model):
     cod_ori = models.ForeignKey(Orientacion, models.DO_NOTHING, db_column='cod_ori', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'sala'
 
 
@@ -129,7 +121,6 @@ class TipoAc(models.Model):
     nombre = models.CharField(unique=True, max_length=30)
 
     class Meta:
-        managed = False
         db_table = 'tipo_ac'
 
 
@@ -138,7 +129,6 @@ class MarcaAc(models.Model):
     nombre = models.CharField(unique=True, max_length=20)
 
     class Meta:
-        managed = False
         db_table = 'marca_ac'
 
 
@@ -147,7 +137,6 @@ class ModeloAc(models.Model):
     modelo = models.CharField(unique=True, max_length=25)
 
     class Meta:
-        managed = False
         db_table = 'modelo_ac'
 
 
@@ -160,7 +149,6 @@ class Ac(models.Model):
     btu = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'ac'
 
 
@@ -169,7 +157,7 @@ class Estado(models.Model):
     estado = models.CharField(max_length=25)
 
     class Meta:
-        managed = False
+
         db_table = 'estado'
 
 
@@ -179,5 +167,4 @@ class EstadoAc(models.Model):
     cod_ac = models.ForeignKey(Ac, models.DO_NOTHING, db_column='cod_ac', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'estado_ac'

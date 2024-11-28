@@ -7,7 +7,6 @@ class Modalidad(models.Model):
     modalidad = models.CharField(unique=True, max_length=25)
 
     class Meta:
-        managed = False
         db_table = 'modalidad'
 
 
@@ -16,7 +15,6 @@ class Seccion(models.Model):
     seccion = models.CharField(unique=True, max_length=50)
 
     class Meta:
-        managed = False
         db_table = 'seccion'
 
 
@@ -25,7 +23,6 @@ class Semestre(models.Model):
     semestre = models.CharField(unique=True, max_length=20)
 
     class Meta:
-        managed = False
         db_table = 'semestre'
 
 
@@ -37,7 +34,6 @@ class Asignatura(models.Model):
     cod_sem = models.ForeignKey(Semestre, models.DO_NOTHING, db_column='cod_sem', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'asignatura'
 
 
@@ -49,7 +45,6 @@ class Docente(models.Model):
     segundo_apellido = models.CharField(max_length=30)
 
     class Meta:
-        managed = False
         db_table = 'docente'
 
 
@@ -60,7 +55,6 @@ class DocenteAsignaturaSeccion(models.Model):
     cod_asig = models.ForeignKey(Asignatura, models.DO_NOTHING, db_column='cod_asig', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'docente_asignatura_seccion'
 
 
@@ -70,7 +64,6 @@ class BloqueHorario(models.Model):
     hora_fin = models.TimeField()
 
     class Meta:
-        managed = False
         db_table = 'bloque_horario'
 
 
@@ -83,7 +76,6 @@ class Clase(models.Model):
     fecha = models.DateField()
 
     class Meta:
-        managed = False
         db_table = 'clase'
 
 
@@ -93,5 +85,4 @@ class BloqueClase(models.Model):
     cod_clase = models.ForeignKey(Clase, models.DO_NOTHING, db_column='cod_clase')
 
     class Meta:
-        managed = False
         db_table = 'bloque_clase'

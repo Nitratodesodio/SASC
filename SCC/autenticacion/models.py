@@ -12,21 +12,13 @@ class UsuarioManager(BaseUserManager):
             raise ValueError('El usuario debe tener un nombre')
         if not usuario:
             raise ValueError('El usuario debe tener un correo electrónico')
-        if not cod_cargo:
-            raise ValueError('El usuario debe tener un cargo')
 
-        # Obtener la instancia de Cargo usando el UUID
-        from autenticacion.models import Cargo
-        try:
-            cargo = Cargo.objects.get(cod_cargo=cod_cargo)
-        except Cargo.DoesNotExist:
-            raise ValueError('El cargo especificado no existe')
 
         user = self.model(
             rut=rut,
             nombre=nombre,
             usuario=usuario,
-            cod_cargo=cargo,  # Ahora pasamos la instancia de Cargo
+            cod_cargo=cod_cargo,  # Ahora pasamos la instancia de Cargo
         )
 
         user.set_password(password)
@@ -62,7 +54,7 @@ class Usuario(AbstractBaseUser):
     nombre = models.CharField("Nombre de usuario",max_length=40)
     usuario = models.EmailField("Correo electrónico",max_length=255, unique=True)
     cod_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, db_column="cod_cargo", blank=True, null=True)
-    #cod_sede = models.ForeignKey('Sede', on_delete=models.CASCADE, blank=True, null=True)
+    cod_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, blank=True, null=True)
     objects = UsuarioManager()
 
     is_active = models.BooleanField(default=True)
