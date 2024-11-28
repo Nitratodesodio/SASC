@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 col-lg-8 col-md-8 col-sm-10 ms-2">
+    <div class="row align-items-start justify-content-center gap-3">
+        <div class="col p-4 justify-content-center customer-color">
+            <div class="text title-text">
+                <span class="title"><b>ALERTAS</b></span>
+            </div>
+            <div class="row mt-4 justify-content-center">
+                <div class="col-12 p-4 rounded change-colors">
+                    <table class="table custom-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Causa</th>
+                            <th scope="col">Gravedad</th>
+                            <th scope="col">Ver más</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <th scope="row">1</th>
+                            <td>Alta temperatura</td>
+                            <td>Alta</td>
+                            <td>ojo</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">2</th>
+                            <td>Sensor</td>
+                            <td>Baja</td>
+                            <td>ojo</td>
+                          </tr>
+                          <tr>
+                            <th scope="row">3</th>
+                            <td>Encendido</td>
+                            <td>Alta</td>
+                            <td>ojo</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

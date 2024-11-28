@@ -21,7 +21,9 @@
 			<header>
 				<div class="image-text">
 					<span class="image">
-						<img src="{% static 'img/logo.png' %}" alt="logo">
+						<a href="{% url 'home' %}">
+							<img src="{% static 'img/logo.png' %}" alt="logo">
+						</a>
 					</span>
 
 					<div class="text header-text">
@@ -36,24 +38,30 @@
 			<div class="menu-bar">
 				<div class="menu">
 					<ul class="menu-links">
+						{% if user == 'Jefe de Operaciones' or user == 'Administración y Finanzas' %}
 						<li class="nav-link">
-							<a href="#">
+							<a href="{% url 'dashboard' %}">
 								<i class='bx bx-bar-chart-alt-2 icon'></i>
 								<span class="text nav-text">Dashboard</span>
 							</a>
 						</li>
+						{% endif %}
+						{% if user == 'Jefe de Operaciones' or user == 'Administración y Finanzas' %}
 						<li class="nav-link">
-							<a href="#">
+							<a href="{% url 'informe' %}">
 								<i class='bx bx-file-blank icon' ></i>
 								<span class="text nav-text">Informes</span>
 							</a>
 						</li>
+						{% endif %}
+						{% if user == 'Jefe de Operaciones' %}
 						<li class="nav-link">
-							<a href="#">
+							<a href="{% url 'alerta' %}">
 								<i class='bx bx-bell icon'></i>
 								<span class="text nav-text">Alertas</span>
 							</a>
 						</li>
+						{% endif %}
 					</ul>
 				</div>
 				<div class="bottom-content">
@@ -78,12 +86,14 @@
 			</div>
 		</nav>
 
-		<section class="home">
-			<div class="text">Dashboard</div>
-		</section>
+		
+		
 
+
+		{% block content %}
+
+		{% endblock %}
 
 		<script src="{% static 'js/script.js' %}"></script>
-		{% block content %}{% endblock content %}
 	</body>
 </html>
