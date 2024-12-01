@@ -7,9 +7,9 @@ environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = "e&+op@%rwihx+p$++u+&$fyozu%44r#9&y9c)2=vn-g1-b%pye"
 
-DEBUG = os.environ.get('DEBUG')
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'core',
     'pagina',
     'monitoreo',
-    'administrador',
+    'administracion',
     'autenticacion',
     'carga_planificacion',
 
@@ -48,7 +48,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ["templates"], #anteriormente -> os.path.join(BASE_DIR, 'templates')
+        #'DIRS': [], #anteriormente -> os.path.join(BASE_DIR, 'templates')
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -97,12 +97,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'inicio_sesion'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-cl'
 
 TIME_ZONE = 'UTC'
 
