@@ -46,6 +46,8 @@
 					<ul class="menu-links">
 						{% if user.cargo.nombre == 'Coordinación' %}
 							{% include 'nav-coordinador.html' %}
+						{% elif user.cargo.nombre == 'Administrador' %}
+							{% include 'nav-administrador.html' %}
 						{% endif %}
 
 <!--						{% if user == 'Jefe de Operaciones' or user == 'Administración y Finanzas' %}-->
