@@ -1,9 +1,9 @@
 from django.db import models
-from administrador.models import Sala
+from administracion.models import Sala
 
 # Create your models here.
 class Modalidad(models.Model):
-    cod_mod = models.UUIDField(primary_key=True)
+    cod_mod = models.SmallAutoField(primary_key=True)
     modalidad = models.CharField(unique=True, max_length=25)
 
     class Meta:
@@ -11,7 +11,7 @@ class Modalidad(models.Model):
 
 
 class Seccion(models.Model):
-    cod_sec = models.UUIDField(primary_key=True)
+    cod_sec = models.BigAutoField(primary_key=True)
     seccion = models.CharField(unique=True, max_length=50)
 
     class Meta:
@@ -19,7 +19,7 @@ class Seccion(models.Model):
 
 
 class Semestre(models.Model):
-    cod_sem = models.UUIDField(primary_key=True)
+    cod_sem = models.AutoField(primary_key=True)
     semestre = models.CharField(unique=True, max_length=20)
 
     class Meta:
@@ -27,7 +27,7 @@ class Semestre(models.Model):
 
 
 class Asignatura(models.Model):
-    cod_asig = models.UUIDField(primary_key=True)
+    cod_asig = models.BigAutoField(primary_key=True)
     identificador = models.CharField(unique=True, max_length=30)
     nombre = models.CharField(max_length=100)
     cod_mod = models.ForeignKey(Modalidad, models.DO_NOTHING, db_column='cod_mod', blank=True, null=True)
@@ -38,7 +38,7 @@ class Asignatura(models.Model):
 
 
 class Docente(models.Model):
-    cod_docente = models.UUIDField(primary_key=True)
+    cod_docente = models.BigAutoField(primary_key=True)
     rut = models.CharField(unique=True, max_length=10)
     nombre = models.CharField(max_length=30)
     primer_apellido = models.CharField(max_length=30)
@@ -49,7 +49,7 @@ class Docente(models.Model):
 
 
 class DocenteAsignaturaSeccion(models.Model):
-    cod_doc_asig_sec = models.UUIDField(primary_key=True)
+    cod_doc_asig_sec = models.BigAutoField(primary_key=True)
     cod_sec = models.ForeignKey(Seccion, models.DO_NOTHING, db_column='cod_sec', blank=True, null=True)
     cod_docente = models.ForeignKey(Docente, models.DO_NOTHING, db_column='cod_docente', blank=True, null=True)
     cod_asig = models.ForeignKey(Asignatura, models.DO_NOTHING, db_column='cod_asig', blank=True, null=True)
@@ -68,7 +68,7 @@ class BloqueHorario(models.Model):
 
 
 class Clase(models.Model):
-    cod_clase = models.UUIDField(primary_key=True)
+    cod_clase = models.BigAutoField(primary_key=True)
     cod_doc_asig_sec = models.ForeignKey(DocenteAsignaturaSeccion, models.DO_NOTHING, db_column='cod_doc_asig_sec',
                                          blank=True, null=True)
     cod_sala = models.ForeignKey(Sala, models.DO_NOTHING, db_column='cod_sala', blank=True, null=True)
@@ -80,7 +80,7 @@ class Clase(models.Model):
 
 
 class BloqueClase(models.Model):
-    cod_bloque_clase = models.UUIDField(primary_key=True)
+    cod_bloque_clase = models.BigAutoField(primary_key=True)
     bloque = models.ForeignKey(BloqueHorario, models.DO_NOTHING, db_column='bloque')
     cod_clase = models.ForeignKey(Clase, models.DO_NOTHING, db_column='cod_clase')
 

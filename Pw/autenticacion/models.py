@@ -5,18 +5,18 @@ from administracion.models import Sede
 
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, rut, nombre, usuario, cod_cargo, password=None):
+    def create_user(self, rut, nombre, email, cod_cargo, password=None):
         if not rut:
             raise ValueError('El usuario debe tener un rut')
         if not nombre:
             raise ValueError('El usuario debe tener un nombre')
-        if not usuario:
+        if not email:
             raise ValueError('El usuario debe tener un correo electrónico')
 
         user = self.model(
             rut=rut,
             nombre=nombre,
-            usuario=usuario,
+            email=email,
             cod_cargo=cod_cargo,  # Ahora pasamos la instancia de Cargo
         )
 
@@ -24,12 +24,12 @@ class UsuarioManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, rut, nombre, usuario, cod_cargo, password):
+    def create_superuser(self, rut, nombre, email, cod_cargo, password):
         user = self.create_user(
             rut=rut,
             nombre=nombre,
-            usuario=usuario,
-            cod_cargo=cod_cargo,
+            email=email,
+            cod_cargo=Cargo.objects.get(cod_cargo=cod_cargo),
             password=password,
         )
         user.is_admin = True
@@ -39,7 +39,7 @@ class UsuarioManager(BaseUserManager):
 
 # Create your models here.
 class Cargo(models.Model):
-    cod_cargo = models.UUIDField(primary_key=True)
+    cod_cargo = models.SmallAutoField(primary_key=True)
     nombre = models.CharField("Cargo", max_length=40, unique=True)
 
     class Meta:
@@ -49,12 +49,15 @@ class Cargo(models.Model):
 
 
 class Usuario(AbstractBaseUser):
-    cod_usuario = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sedes = [(i.cod_sede, i.nombre) for i in list(Sede.objects.all())]
+    cargos = [(i.cod_cargo, i.nombre) for i in list(Cargo.objects.all())]
+
+    cod_usuario = models.AutoField(primary_key=True)
     rut = models.CharField("Rut", max_length=10, unique=True)
     nombre = models.CharField("Nombre y apellidos", max_length=40)
     email = models.EmailField("Correo electrónico", max_length=255, unique=True)
-    cod_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, db_column="cod_cargo", blank=True, null=True)
-    cod_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, blank=True, null=True)
+    cod_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE,choices=cargos, db_column="cod_cargo", blank=True, null=True)
+    cod_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, choices=sedes, db_column="cod_sede", blank=True, null=True)
     objects = UsuarioManager()
 
     is_active = models.BooleanField(default=True)

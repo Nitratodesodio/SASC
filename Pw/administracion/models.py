@@ -7,14 +7,14 @@ from django.db import models
 
 
 class Zona(models.Model):
-    cod_zona = models.UUIDField(primary_key=True)
+    cod_zona = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=20)
 
     class Meta:
         db_table = 'zona'
 
 class Ciudad(models.Model):
-    cod_ciudad = models.UUIDField(primary_key=True)
+    cod_ciudad = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=50)
     cod_zona = models.ForeignKey('Zona', models.DO_NOTHING, db_column='cod_zona', blank=True, null=True)
 
@@ -22,7 +22,7 @@ class Ciudad(models.Model):
         db_table = 'ciudad'
 
 class Comuna(models.Model):
-    cod_comuna = models.UUIDField(primary_key=True)
+    cod_comuna = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=20)
     cod_ciudad = models.ForeignKey(Ciudad, models.DO_NOTHING, db_column='cod_ciudad', blank=True, null=True)
 
@@ -31,7 +31,7 @@ class Comuna(models.Model):
 
 
 class Clima(models.Model):
-    cod_clima = models.UUIDField(primary_key=True)
+    cod_clima = models.SmallAutoField(primary_key=True)
     fecha_hora = models.DateTimeField()
     temperatura = models.DecimalField(max_digits=5, decimal_places=2)
     humedad = models.DecimalField(max_digits=5, decimal_places=2)
@@ -42,7 +42,7 @@ class Clima(models.Model):
 
 
 class Sede(models.Model):
-    cod_sede = models.UUIDField(primary_key=True)
+    cod_sede = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=30)
     cod_comuna = models.ForeignKey(Comuna, models.DO_NOTHING, db_column='cod_comuna', blank=True, null=True)
 
@@ -52,7 +52,7 @@ class Sede(models.Model):
 
 
 class Edificio(models.Model):
-    cod_edificio = models.UUIDField(primary_key=True)
+    cod_edificio = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=30)
     cod_sede = models.ForeignKey(Sede, models.DO_NOTHING, db_column='cod_sede', blank=True, null=True)
 
@@ -61,7 +61,7 @@ class Edificio(models.Model):
 
 
 class Controlador(models.Model):
-    cod_controlador = models.UUIDField(primary_key=True)
+    cod_controlador = models.AutoField(primary_key=True)
     mac = models.CharField(unique=True, max_length=50)
 
     class Meta:
@@ -69,7 +69,7 @@ class Controlador(models.Model):
 
 
 class TipoSensor(models.Model):
-    cod_tipo_sensor = models.UUIDField(primary_key=True)
+    cod_tipo_sensor = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=50)
 
     class Meta:
@@ -77,7 +77,7 @@ class TipoSensor(models.Model):
 
 
 class Sensor(models.Model):
-    cod_sensor = models.UUIDField(primary_key=True)
+    cod_sensor = models.AutoField(primary_key=True)
     cod_tipo_sensor = models.ForeignKey(TipoSensor, models.DO_NOTHING, db_column='cod_tipo_sensor', blank=True, null=True)
     cod_controlador = models.ForeignKey(Controlador, models.DO_NOTHING, db_column='cod_controlador', blank=True, null=True)
 
@@ -86,7 +86,7 @@ class Sensor(models.Model):
 
 
 class Lectura(models.Model):
-    cod_lectura = models.UUIDField(primary_key=True)
+    cod_lectura = models.BigAutoField(primary_key=True)
     cod_sensor = models.ForeignKey(Sensor, models.DO_NOTHING, db_column='cod_sensor', blank=True, null=True)
     valor = models.FloatField(blank=True, null=True)
     fecha_hora = models.DateTimeField()
@@ -96,7 +96,7 @@ class Lectura(models.Model):
 
 
 class Orientacion(models.Model):
-    cod_ori = models.UUIDField(primary_key=True)
+    cod_ori = models.SmallAutoField(primary_key=True)
     orientacion = models.CharField(unique=True, max_length=25)
 
     class Meta:
@@ -104,7 +104,7 @@ class Orientacion(models.Model):
 
 
 class Sala(models.Model):
-    cod_sala = models.UUIDField(primary_key=True)
+    cod_sala = models.BigAutoField(primary_key=True)
     sala = models.CharField(unique=True, max_length=25)
     capacidad = models.IntegerField(blank=True, null=True)
     cod_edificio = models.ForeignKey(Edificio, models.DO_NOTHING, db_column='cod_edificio', blank=True, null=True)
@@ -117,7 +117,7 @@ class Sala(models.Model):
 
 
 class TipoAc(models.Model):
-    cod_tipo = models.UUIDField(primary_key=True)
+    cod_tipo = models.SmallAutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=30)
 
     class Meta:
@@ -125,7 +125,7 @@ class TipoAc(models.Model):
 
 
 class MarcaAc(models.Model):
-    cod_marca = models.UUIDField(primary_key=True)
+    cod_marca = models.AutoField(primary_key=True)
     nombre = models.CharField(unique=True, max_length=20)
 
     class Meta:
@@ -133,7 +133,7 @@ class MarcaAc(models.Model):
 
 
 class ModeloAc(models.Model):
-    cod_modelo = models.UUIDField(primary_key=True)
+    cod_modelo = models.AutoField(primary_key=True)
     modelo = models.CharField(unique=True, max_length=25)
 
     class Meta:
@@ -141,7 +141,7 @@ class ModeloAc(models.Model):
 
 
 class Ac(models.Model):
-    cod_ac = models.UUIDField(primary_key=True)
+    cod_ac = models.BigAutoField(primary_key=True)
     cod_sala = models.ForeignKey(Sala, models.DO_NOTHING, db_column='cod_sala', blank=True, null=True)
     cod_tipo = models.ForeignKey(TipoAc, models.DO_NOTHING, db_column='cod_tipo', blank=True, null=True)
     cod_marca = models.ForeignKey(MarcaAc, models.DO_NOTHING, db_column='cod_marca', blank=True, null=True)
@@ -153,7 +153,7 @@ class Ac(models.Model):
 
 
 class Estado(models.Model):
-    cod_estado = models.UUIDField(primary_key=True)
+    cod_estado = models.SmallAutoField(primary_key=True)
     estado = models.CharField(max_length=25)
 
     class Meta:
@@ -162,7 +162,7 @@ class Estado(models.Model):
 
 
 class EstadoAc(models.Model):
-    cod_estado_ac = models.UUIDField(primary_key=True)
+    cod_estado_ac = models.BigAutoField(primary_key=True)
     cod_estado = models.ForeignKey(Estado, models.DO_NOTHING, db_column='cod_estado', blank=True, null=True)
     cod_ac = models.ForeignKey(Ac, models.DO_NOTHING, db_column='cod_ac', blank=True, null=True)
 
