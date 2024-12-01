@@ -10,7 +10,7 @@ urlpatterns = [
     path('informe/', InformeView.as_view(), name="informe"),
     path('alerta/', AlertaView.as_view(), name="alerta"),
     path('administracion/', include("administracion.urls")),
-
+    path('carga_planificacion/', include("carga_planificacion.urls")),
  
 
 ]
