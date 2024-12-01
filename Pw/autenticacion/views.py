@@ -17,11 +17,9 @@ def inicio_sesion(request):
         usuario = authenticate(request, email=email, password=password)
         if usuario:
             login(request, usuario)
-            if request.user.cargo.nombre == 'Coordinación':
-                return redirect('carga_planificacion')
-            return redirect('home')
-        else:
-            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
+            redirect('home')
+    else:
+        return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
 
 
 def cerrar_sesion(request):
