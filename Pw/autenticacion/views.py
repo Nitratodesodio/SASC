@@ -5,8 +5,9 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 # Create your views here.
 @login_required()
 def home(request):
-    usuario = request.user
-    return render(request, 'home.html')
+    if request.user.cargo.nombre == 'Coordinación':
+        return redirect('carga_planificacion')
+    return redirect('perfil')
 
 
 def inicio_sesion(request):
@@ -19,7 +20,8 @@ def inicio_sesion(request):
             if request.user.cargo.nombre == 'Coordinación':
                 return redirect('carga_planificacion')
             return redirect('home')
-    return render(request, 'login.html')
+        else:
+            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
 
 
 def cerrar_sesion(request):

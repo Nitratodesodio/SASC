@@ -5,6 +5,7 @@
     <h1>Login</h1>
     <form action="{% url 'inicio_sesion' %}" method="post">
         {% csrf_token %}
+        <h3 class="text-danger">{{ error }}</h3>
         <input type="email" name="email" placeholder="Correo electrónico">
         <input type="password" name="password" placeholder="Contraseña">
         <button type="submit">Login</button>
