@@ -31,7 +31,7 @@
 					<div class="text header-text">
 						<span class="name"><b>SCC</b></span>
 						{% if user.is_authenticated %}
-						<span class="profession">{{ user.cod_cargo.nombre }}</span>
+						<span class="profession">{{ user.cargo.nombre }}</span>
 						{% else %}
 						<span class="profession">No autenticado</span>
 						{% endif %}

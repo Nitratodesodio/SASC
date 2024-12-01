@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 # Create your views here.
 @login_required()
 def home(request):
-    usuario = request.user.cod_cargo
+    usuario = request.user
     return render(request, 'home.html')
 
 

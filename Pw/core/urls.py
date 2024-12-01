@@ -9,6 +9,7 @@ urlpatterns = [
     path('dashboard/', DashboardView.as_view(), name="dashboard"),
     path('informe/', InformeView.as_view(), name="informe"),
     path('alerta/', AlertaView.as_view(), name="alerta"),
+    path('administracion/', include("administracion.urls")),
 
  
 

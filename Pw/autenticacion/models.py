@@ -5,7 +5,7 @@ from administracion.models import Sede
 
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, rut, nombre, email, cargo, password=None):
+    def create_user(self, rut, nombre, email, cargo, sede=None, password=None):
         if not rut:
             raise ValueError('El usuario debe tener un rut')
         if not nombre:
@@ -18,18 +18,20 @@ class UsuarioManager(BaseUserManager):
             nombre=nombre,
             email=email,
             cargo=cargo,  # Ahora pasamos la instancia de Cargo
+            sede=sede,  # Ahora pasamos la instancia de Sede
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, rut, nombre, email, cargo, password):
+    def create_superuser(self, rut, nombre, email, cargo, password, sede=None):
         user = self.create_user(
             rut=rut,
             nombre=nombre,
             email=email,
-            cargo=Cargo.objects.get(nombre=cargo),
+            cargo=Cargo.objects.get(cod_cargo=cargo),
+            sede=Sede.objects.get(cod_sede=sede),
             password=password,
         )
         user.is_admin = True
@@ -47,6 +49,8 @@ class Cargo(models.Model):
         verbose_name_plural = 'Cargos'
         db_table = 'cargo'
 
+    def __str__(self):
+        return self.nombre
 
 class Usuario(AbstractBaseUser):
 
