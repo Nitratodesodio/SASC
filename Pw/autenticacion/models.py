@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 import uuid
-from administrador.models import Sede
+from administracion.models import Sede
 
 
 class UsuarioManager(BaseUserManager):
@@ -40,7 +40,7 @@ class UsuarioManager(BaseUserManager):
 # Create your models here.
 class Cargo(models.Model):
     cod_cargo = models.UUIDField(primary_key=True)
-    nombre = models.CharField("Nombre del cargo", max_length=40, unique=True)
+    nombre = models.CharField("Cargo", max_length=40, unique=True)
 
     class Meta:
         verbose_name = 'Cargo'
@@ -51,8 +51,8 @@ class Cargo(models.Model):
 class Usuario(AbstractBaseUser):
     cod_usuario = models.UUIDField(primary_key=True, default=uuid.uuid4)
     rut = models.CharField("Rut", max_length=10, unique=True)
-    nombre = models.CharField("Nombre de usuario", max_length=40)
-    usuario = models.EmailField("Correo electrónico", max_length=255, unique=True)
+    nombre = models.CharField("Nombre y apellidos", max_length=40)
+    email = models.EmailField("Correo electrónico", max_length=255, unique=True)
     cod_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, db_column="cod_cargo", blank=True, null=True)
     cod_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, blank=True, null=True)
     objects = UsuarioManager()
@@ -60,7 +60,7 @@ class Usuario(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'usuario'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['rut', 'nombre', 'cod_cargo']
 
     def __str__(self):
