@@ -1,4 +1,4 @@
-{% extends '../../../core/templates/core/base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
 <div class="container mt-4 col-lg-8 col-md-10 col-sm-12 ms-2">
@@ -12,11 +12,9 @@
           </div>
           <!-- Información del perfil -->
           <div class="d-flex flex-column flex-grow-1">
-            <h5 class="mb-1"><b>Nombre Completo</b></h5>
-            <p class="mb-1"><b>Cargo:</b> <span>Tu Cargo</span></p>
-            <p class="mb-1"><b>Correo:</b> <span>tucorreo@institucion.edu</span></p>
-            <p class="mb-1"><b>Usuario:</b> <span>nombre_usuario</span></p>
-            <p class="mb-1"><b>Contraseña:</b> <span>********</span></p>
+            <h5 class="mb-1"><b>{{ user.nombre }}</b></h5>
+            <p class="mb-1"><b>Cargo:</b> <span>{{ user.cod_cargo.nombre }}</span></p>
+            <p class="mb-1"><b>Correo:</b> <span>{{ user.email }}</span></p>
           </div>
           <div class="text-center justify-content-center mt-3" style="height: 20px;">
             <button type="button" class="btn btn-primary button">ACTUALIZAR DATOS</button>

@@ -17,7 +17,7 @@
 
 	</head>
 	<body>
-		{% block nav %}
+		{% block nav-list %}
 		{% endblock %}
 		<nav class="sidebar close">
 			<header>
@@ -30,7 +30,11 @@
 
 					<div class="text header-text">
 						<span class="name"><b>SCC</b></span>
-						<span class="profession">Jefe de Operaciones</span>
+						{% if user.is_authenticated %}
+						<span class="profession">{{ user.cod_cargo.nombre }}</span>
+						{% else %}
+						<span class="profession">No autenticado</span>
+						{% endif %}
 					</div>
 				</div>
 
@@ -67,12 +71,21 @@
 					</ul>
 				</div>
 				<div class="bottom-content">
+					{% if user.is_authenticated %}
 					<li class="">
-						<a href="#">
+						<a href="{% url 'cerrar_sesion' %}">
 							<i class='bx bx-log-out icon'></i>
 							<span class="text nav-text">Salir</span>
 						</a>
 					</li>
+					{% else %}
+					<li class="">
+						<a href="{% url 'inicio_sesion' %}">
+							<i class='bx bx-log-in icon'></i>
+							<span class="text nav-text">Ingresar</span>
+						</a>
+					</li>
+					{% endif %}
 					<li class="mode">
 						<div class="moon-sun">
 							<i class='bx bx-moon icon moon'></i>

@@ -5,7 +5,7 @@ from administracion.models import Sede
 
 
 class UsuarioManager(BaseUserManager):
-    def create_user(self, rut, nombre, email, cod_cargo, password=None):
+    def create_user(self, rut, nombre, email, cargo, password=None):
         if not rut:
             raise ValueError('El usuario debe tener un rut')
         if not nombre:
@@ -17,19 +17,19 @@ class UsuarioManager(BaseUserManager):
             rut=rut,
             nombre=nombre,
             email=email,
-            cod_cargo=cod_cargo,  # Ahora pasamos la instancia de Cargo
+            cargo=cargo,  # Ahora pasamos la instancia de Cargo
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, rut, nombre, email, cod_cargo, password):
+    def create_superuser(self, rut, nombre, email, cargo, password):
         user = self.create_user(
             rut=rut,
             nombre=nombre,
             email=email,
-            cod_cargo=Cargo.objects.get(cod_cargo=cod_cargo),
+            cargo=Cargo.objects.get(nombre=cargo),
             password=password,
         )
         user.is_admin = True
@@ -49,22 +49,20 @@ class Cargo(models.Model):
 
 
 class Usuario(AbstractBaseUser):
-    sedes = [(i.cod_sede, i.nombre) for i in list(Sede.objects.all())]
-    cargos = [(i.cod_cargo, i.nombre) for i in list(Cargo.objects.all())]
 
     cod_usuario = models.AutoField(primary_key=True)
     rut = models.CharField("Rut", max_length=10, unique=True)
     nombre = models.CharField("Nombre y apellidos", max_length=40)
     email = models.EmailField("Correo electrónico", max_length=255, unique=True)
-    cod_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE,choices=cargos, db_column="cod_cargo", blank=True, null=True)
-    cod_sede = models.ForeignKey(Sede, on_delete=models.CASCADE, choices=sedes, db_column="cod_sede", blank=True, null=True)
+    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, db_column="cod_cargo", blank=True, null=True)
+    sede = models.ForeignKey(Sede, on_delete=models.CASCADE, db_column="cod_sede", blank=True, null=True)
     objects = UsuarioManager()
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['rut', 'nombre', 'cod_cargo']
+    REQUIRED_FIELDS = ['rut', 'nombre', 'cargo']
 
     def __str__(self):
         return self.nombre
