@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .forms import UsuarioCreationForm
+
 
 # Create your views here.
 def registrar_usuario(request):
@@ -8,5 +9,5 @@ def registrar_usuario(request):
         form = UsuarioCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'home.html')
+            return redirect('home')
     return render(request, 'registro_usuario.html', {'form': form})
