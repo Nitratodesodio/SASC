@@ -70,6 +70,7 @@ INSERT INTO Estado (estado) VALUES
 ('Desconocido');
 
 INSERT INTO Cargo (nombre) VALUES
+('Administrador'),
 ('Jefe de Operaciones'),
 ('Director de Administración y Finanzas'),
 ('Coordinación'),
