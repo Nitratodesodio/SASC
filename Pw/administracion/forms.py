@@ -13,7 +13,7 @@ class UsuarioCreationForm(BaseUserCreationForm):
             'nombre': 'Nombre y apellidos',
             'email': 'Correo electrónico',
             'cargo': 'Cargo',
-            'sede': 'Sede',
+            'sede': 'Sede'
         }
         widgets = {
             'rut': TextInput(attrs={'class': 'form-control'}),

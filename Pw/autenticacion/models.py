@@ -31,7 +31,7 @@ class UsuarioManager(BaseUserManager):
             nombre=nombre,
             email=email,
             cargo=Cargo.objects.get(cod_cargo=cargo),
-            sede=Sede.objects.get(cod_sede=sede),
+            sede=None,
             password=password,
         )
         user.is_admin = True

@@ -22,7 +22,7 @@ def inicio_sesion(request):
             return redirect('home')
         else:
             return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
-
+    return render(request, 'login.html')
 
 def cerrar_sesion(request):
     logout(request)
