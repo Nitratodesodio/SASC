@@ -9,3 +9,7 @@ def dashboard(request):
 @login_required()
 def informes(request):
     return render(request, 'informes.html')
+
+@login_required()
+def alertas(request):
+    return render(request, 'alertas.html')
