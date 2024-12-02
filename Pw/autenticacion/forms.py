@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import BaseUserCreationForm
 from django.forms import Select, TextInput, EmailInput, PasswordInput
-from autenticacion.models import Usuario, Cargo
-from .models import Sede
+from .models import Usuario, Cargo
+from administracion.models import Sede
 
 class UsuarioCreationForm(BaseUserCreationForm):
 

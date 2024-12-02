@@ -31,3 +31,12 @@ def cerrar_sesion(request):
 
 def perfil(request):
     return render(request, 'perfil.html')
+
+def registrar_usuario(request):
+    form = UsuarioCreationForm()
+    if request.method == 'POST':
+        form = UsuarioCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    return render(request, 'registro_usuario.html', {'form': form})
