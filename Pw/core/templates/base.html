@@ -50,6 +50,8 @@
 							{% include 'nav-administrador.html' %}
 						{% elif user.cargo.nombre == 'Director de Administración y Finanzas' %}
 							{% include 'nav-director.html' %}
+						{% elif user.cargo.nombre == 'Jefe de Operaciones' %}
+							{% include 'nav-operaciones.html' %}
 						{% endif %}
 
 <!--
