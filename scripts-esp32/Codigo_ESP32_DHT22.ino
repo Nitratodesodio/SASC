@@ -36,8 +36,10 @@ String roomNumber = "";
 
 String mqtt_topic = "";
 String mqtt_topic_temp = "";
+String mqtt_topic_hum = "";
 String mqtt_topic_pres = "";
 String mqtt_topic_moving = "";
+String mqtt_topic_error = "";
 
 WiFiClientSecure espClient; // Use WiFiClientSecure for secure connections
 PubSubClient client(espClient);
@@ -87,8 +89,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     // Actualizar los tópicos MQTT
     mqtt_topic = roomNumber;
     mqtt_topic_temp = roomNumber + "/temp";
+    mqtt_topic_hum = roomNumber + "/hum";
     mqtt_topic_pres = roomNumber + "/pres";
     mqtt_topic_moving = roomNumber + "/mov";
+    mqtt_topic_error = roomNumber + "/error";
 
     // Suscribirse al tópico de la sala para controlar el LED
     client.subscribe(mqtt_topic.c_str());
@@ -104,10 +108,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       // Puedes manejar otros comandos aquí si es necesario
       Serial.println("Comando no reconocido");
+      client.publish(mqtt_topic_error.c_str(), "Comando no reconocido");
     }
   } else {
     // Manejar otros tópicos si es necesario
     Serial.println("Mensaje recibido en un tópico no manejado");
+    client.publish(mqtt_topic_error.c_str(), "Mensaje recibido en un tópico no manejado");
   }
 }
 
@@ -195,6 +201,7 @@ void setup(void) {
     MONITOR_SERIAL.print('.');
     MONITOR_SERIAL.println(radar.firmware_bugfix_version, HEX);
   } else {
+    client.publish(mqtt_topic_error.c_str(), "Sensor LD2410 no conectado");
     MONITOR_SERIAL.println(F("no conectado"));
   }
 }
@@ -207,10 +214,12 @@ void send_data() {
 
     if (roomNumber != "") {
       float temperature = dht.readTemperature(); // Lee la temperatura del DHT22
+      float humidity = dht.readHumidity(); // Lee la humedad del DHT22
 
       // Verificar si la lectura fue exitosa
       if (isnan(temperature)) {
         Serial.println("Error al leer del sensor DHT");
+        client.publish(mqtt_topic_error.c_str(), "Error al leer del sensor DHT");
       } else {
         // Obtener la hora actual
         time_t nowTime = time(nullptr);
@@ -224,9 +233,13 @@ void send_data() {
         // Crear el mensaje para publicar
         String message = String(temperature);
         Serial.println("Publicando temperatura: " + message);
+        String message2 = String(humidity);
+
 
         // Publicar la temperatura al tópico MQTT
         client.publish(mqtt_topic_temp.c_str(), message.c_str());
+        client.publish(mqtt_topic_hum.c_str(), message2.c_str());
+        
       }
     }
   }
