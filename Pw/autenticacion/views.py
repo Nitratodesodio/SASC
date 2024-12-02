@@ -17,8 +17,6 @@ def inicio_sesion(request):
         usuario = authenticate(request, email=email, password=password)
         if usuario:
             login(request, usuario)
-            if request.user.cargo.nombre == 'Coordinación':
-                return redirect('carga_planificacion')
             return redirect('home')
         else:
             return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
@@ -30,6 +28,7 @@ def cerrar_sesion(request):
     return render(request, 'login.html')
 
 def perfil(request):
+    #Aquí cambiará el contexto adicional al perfil según el cargo del usuario
     return render(request, 'perfil.html')
 
 def registrar_usuario(request):
