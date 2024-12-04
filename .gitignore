@@ -2,3 +2,5 @@
 .idea
 etl-planificacion/__pycache__/
 **/~$PLANIFICACION\ POR\ DIA-\ SALA\ -\ BLOQUE\ SEMANA\ 23-09-2024.xlsx
+**/__pycache__/
+**/migrations/

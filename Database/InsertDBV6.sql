@@ -70,6 +70,7 @@ INSERT INTO Estado (estado) VALUES
 ('Desconocido');
 
 INSERT INTO Cargo (nombre) VALUES
+('Administrador'),
 ('Jefe de Operaciones'),
 ('Director de Administración y Finanzas'),
 ('Coordinación'),
@@ -102,15 +103,19 @@ INSERT INTO Orientacion (orientacion) VALUES
 ('Desconocido');
 
 INSERT INTO controlador (mac) VALUES
-('a0:dd:6c:10:33:0c');
+('A0:DD:6C:10:33:0C');
 
 INSERT INTO Sensor (cod_tipo_sensor, cod_controlador)
 VALUES (
-       (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Presencia LD2410'), -- Subconsulta para obtener el código de tipo de sensor
-    (SELECT cod_controlador FROM Controlador WHERE mac = 'a0:dd:6c:10:33:0c') -- Subconsulta para obtener el controlador relacionado con la MAC
+    (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Presencia LD2410'), -- Subconsulta para obtener el código de tipo de sensor
+    (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:10:33:0C') -- Subconsulta para obtener el controlador relacionado con la MAC
 ),
 (
-       (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Temperatura y Humedad DHT22'),
-    (SELECT cod_controlador FROM Controlador WHERE mac = 'a0:dd:6c:10:33:0c')
-);
+    (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Temperatura DHT22'),
+    (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:10:33:0C')
+),
+    (
+    (SELECT cod_tipo_sensor FROM Tipo_sensor WHERE nombre = 'Sensor Humedad DHT22'),
+    (SELECT cod_controlador FROM controlador WHERE mac = 'A0:DD:6C:10:33:0C')
+    );
 

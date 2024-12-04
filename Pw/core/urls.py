@@ -1,13 +1,14 @@
 from django.contrib import admin
-from django.urls import path
-from .views import HomeView
-from django.conf import settings # new
-from  django.conf.urls.static import static #new
+from django.urls import path, include
+from .views import  DashboardView, InformeView, AlertaView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('',HomeView.as_view(), name="home"),
+    path('',include("autenticacion.urls")),
+    path('monitoreo/', include("monitoreo.urls")),
+    path('carga_planificacion/', include("carga_planificacion.urls")),
+ 
 
 ]
 if settings.DEBUG:

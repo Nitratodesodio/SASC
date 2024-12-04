@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-    <title>SCC</title>
+    <title>{% block title %}{% endblock %}</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -17,16 +17,24 @@
 
 	</head>
 	<body>
+		{% block nav-list %}
+		{% endblock %}
 		<nav class="sidebar close">
 			<header>
 				<div class="image-text">
 					<span class="image">
-						<img src="{% static 'img/logo.png' %}" alt="logo">
+						<a href="{% url 'home' %}">
+							<img src="{% static 'img/logo.png' %}" alt="logo">
+						</a>
 					</span>
 
 					<div class="text header-text">
 						<span class="name"><b>SCC</b></span>
-						<span class="profession">Jefe de Operaciones</span>
+						{% if user.is_authenticated %}
+						<span class="profession">{{ user.cargo.nombre }}</span>
+						{% else %}
+						<span class="profession">No autenticado</span>
+						{% endif %}
 					</div>
 				</div>
 
@@ -36,33 +44,43 @@
 			<div class="menu-bar">
 				<div class="menu">
 					<ul class="menu-links">
-						<li class="nav-link">
-							<a href="#">
-								<i class='bx bx-bar-chart-alt-2 icon'></i>
-								<span class="text nav-text">Dashboard</span>
-							</a>
-						</li>
-						<li class="nav-link">
-							<a href="#">
-								<i class='bx bx-file-blank icon' ></i>
-								<span class="text nav-text">Informes</span>
-							</a>
-						</li>
-						<li class="nav-link">
-							<a href="#">
-								<i class='bx bx-bell icon'></i>
-								<span class="text nav-text">Alertas</span>
-							</a>
-						</li>
+						{% if user.cargo.nombre == 'Coordinación' %}
+							{% include 'nav-coordinador.html' %}
+						{% elif user.cargo.nombre == 'Administrador' %}
+							{% include 'nav-administrador.html' %}
+						{% elif user.cargo.nombre == 'Director de Administración y Finanzas' %}
+							{% include 'nav-director.html' %}
+						{% elif user.cargo.nombre == 'Jefe de Operaciones' %}
+							{% include 'nav-operaciones.html' %}
+						{% endif %}
+
+<!--
+<!--						{% if user == 'Jefe de Operaciones' %}-->
+<!--						<li class="nav-link">-->
+<!--							<a href="{% url 'alerta' %}">-->
+<!--								<i class='bx bx-bell icon'></i>-->
+<!--								<span class="text nav-text">Alertas</span>-->
+<!--							</a>-->
+<!--						</li>-->
+<!--						{% endif %}-->
 					</ul>
 				</div>
 				<div class="bottom-content">
+					{% if user.is_authenticated %}
 					<li class="">
-						<a href="#">
+						<a href="{% url 'cerrar_sesion' %}">
 							<i class='bx bx-log-out icon'></i>
 							<span class="text nav-text">Salir</span>
 						</a>
 					</li>
+					{% else %}
+					<li class="">
+						<a href="{% url 'inicio_sesion' %}">
+							<i class='bx bx-log-in icon'></i>
+							<span class="text nav-text">Ingresar</span>
+						</a>
+					</li>
+					{% endif %}
 					<li class="mode">
 						<div class="moon-sun">
 							<i class='bx bx-moon icon moon'></i>
@@ -78,12 +96,14 @@
 			</div>
 		</nav>
 
-		<section class="home">
-			<div class="text">Dashboard</div>
-		</section>
+		
+		
 
+
+		{% block content %}
+
+		{% endblock %}
 
 		<script src="{% static 'js/script.js' %}"></script>
-		{% block content %}{% endblock content %}
 	</body>
 </html>

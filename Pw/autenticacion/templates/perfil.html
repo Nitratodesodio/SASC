@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+    {% block content %}
+<div class="container mt-4 col-lg-8 col-md-10 col-sm-12 ms-2">
+    <div class="row align-items-center justify-content-center gap-3 py-5">
+        <!-- Contenedor del perfil -->
+        <div class="col-lg-6 col-md-12">
+            <!-- Foto circular -->
+            <div class="d-flex h-100 flex-column flex-md-row align-items-center rounded-3 change-colors p-3 shadow">
+                <div class="me-3">
+                    <img src="https://via.placeholder.com/80" alt="Foto" class="rounded-circle" width="80" height="80">
+                </div>
+                <!-- Información del perfil -->
+                <div class="d-flex flex-column flex-grow-1">
+                    <h5 class="mb-1"><b>{{ user.nombre }}</b></h5>
+                    <p class="mb-1"><b>Cargo:</b> <span>{{ user.cargo.nombre }}</span></p>
+                    <p class="mb-1"><b>Correo:</b> <span>{{ user.email }}</span></p>
+                </div>
+                <div class="text-center justify-content-center mt-3" style="height: 20px;">
+                    <button type="button" class="btn btn-primary button">ACTUALIZAR DATOS</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Contenedor para la temperatura -->
+        <div class="col-lg-3 col-md-12 h-100">
+            <a class="weatherwidget-io shadow rounded-3" href="https://forecast7.com/es/n33d49n70d60/macul/" data-label_1="MACUL"
+               data-label_2="Chile" data-font="Roboto" data-icons="Climacons Animated" data-mode="Current"
+               data-theme="sky">MACUL Chile</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    !function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = 'https://weatherwidget.io/js/widget.min.js';
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+    }(document, 'script', 'weatherwidget-io-js');
+</script>
+{% endblock content %}

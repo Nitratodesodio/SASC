@@ -1,0 +1,47 @@
+[
+    {
+        "id": "0f3a66a6dc6df201",
+        "type": "postgrestor",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "SELECT \n    a.nombre AS nombre_asignatura,\n    c.fecha AS fecha_clase,\n    s.sala AS sala,\n    MIN(bh.hora_inicio) AS hora_inicio,\n    MAX(bh.hora_fin) AS hora_fin\nFROM clase c\nJOIN bloque_clase bc ON c.cod_clase = bc.cod_clase\nJOIN bloque_horario bh ON bc.bloque = bh.bloque\nJOIN docente_asignatura_seccion das ON c.cod_doc_asig_sec = das.cod_doc_asig_sec\nJOIN asignatura a ON das.cod_asig = a.cod_asig\nJOIN sala s ON c.cod_sala = s.cod_sala\nWHERE c.fecha = CURRENT_DATE\nGROUP BY a.nombre, c.fecha, s.sala\nORDER BY c.fecha, hora_inicio;",
+        "postgresDB": "93ec092b8cc4bed5",
+        "output": true,
+        "outputs": 1,
+        "throwErrors": false,
+        "x": 730,
+        "y": 900,
+        "wires": [
+            [
+                "660817d773e5c6a1"
+            ]
+        ]
+    },
+    {
+        "id": "93ec092b8cc4bed5",
+        "type": "postgresDB",
+        "name": "SCC",
+        "throwErrors": true,
+        "throwErrorsFieldType": "bool",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "SCC",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "max": "10",
+        "maxFieldType": "num",
+        "min": "1",
+        "minFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "0000000000",
+        "passwordFieldType": "str"
+    }
+]
