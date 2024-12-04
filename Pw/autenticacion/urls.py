@@ -1,6 +1,8 @@
 
 from django.urls import path
 from .views import home, inicio_sesion, cerrar_sesion, perfil, registrar_usuario
+from django.conf import settings # new
+from  django.conf.urls.static import static #new
 
 urlpatterns = [
 
