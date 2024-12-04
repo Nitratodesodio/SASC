@@ -1,17 +1,17 @@
 from pathlib import Path
 import os
-import environ
+# import environ
 
-env = environ.Env()
-environ.Env.read_env()
+# env = environ.Env()
+# environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "e&+op@%rwihx+p$++u+&$fyozu%44r#9&y9c)2=vn-g1-b%pye"
+SECRET_KEY = "e&+op&$rwiht+p$++uh+&$fyozu&44r#9&y9c)2=vn-g!-b$8pye"
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['ec2-3-93-152-162.compute-1.amazonaws.com', '3.93.152.162']
 
 
 # Application definition
