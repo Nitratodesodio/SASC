@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .status-indicator {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+        border: 2px solid #ffffff; /* Borde blanco */
+    }
+
+    .activo {
+        background-color: #62ff84; /* Verde brillante */
+    }
+
+    .inactivo {
+        background-color: #808080; /* Gris */
+    }
+
+    .error {
+        background-color: #F44336; /* Rojo */
+    }
+
+    .sala {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .floor-container {
+        background-color: #b3b3b3; /* Color de fondo para diferenciar cada piso */
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px; /* Bordes redondeados */
+    }
+
+    #salas-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .floor-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333333; /* Título de color oscuro */
+        margin-bottom: 15px;
+    }
+
+
+</style>
+<main class="container">
+    <div class="container mt-4 col-lg-8 col-md-8 col-sm-10 ms-2">
+        <div class="row align-items-start justify-content-center gap-3">
+            <div class="col p-4 justify-content-center customer-color">
+                <div class="text title-text">
+                    <span class="title"><b>Estado de las salas</b></span>
+                </div>
+
+                <!-- Piso 1 -->
+                <div class="floor-container">
+                    <div class="floor-title">Piso 1</div>
+                    <div id="salas-container">
+                        {% for item in piso1 %}
+                        <div class="sala">
+                            <div class="status-indicator activo"></div>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#exampleModal">Sala {{ item.sala }}</button>
+
+                            <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Piso 2 -->
+                <div class="floor-container">
+                    <div class="floor-title">Piso 2</div>
+                    <div id="salas-container">
+                        {% for item in piso2 %}
+                        <div class="sala">
+                            <div class="status-indicator error"></div>
+                            <button type="button" class="btn-custom" data-toggle="modal" data-target="#modal-{{ item.sala }}">Sala {{ item.sala }}</button>
+
+                            <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Piso 3 -->
+                <div class="floor-container">
+                    <div class="floor-title">Piso 3</div>
+                    <div id="salas-container">
+                        {% for item in piso3 %}
+                        <div class="sala">
+                            <div class="status-indicator activo"></div>
+                            <button type="button" class="btn-custom" data-toggle="modal" data-target="#modal-{{ item.sala }}">Sala {{ item.sala }}</button>
+
+                            <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Piso 4 -->
+                <div class="floor-container">
+                    <div class="floor-title">Piso 4</div>
+                    <div id="salas-container">
+                        {% for item in piso4 %}
+                        <div class="sala">
+                            <div class="status-indicator activo"></div>
+                            <button type="button" class="btn-custom" data-toggle="modal" data-target="#modal-{{ item.sala }}">Sala {{ item.sala }}</button>
+
+                            <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Piso 5 -->
+                <div class="floor-container">
+                    <div class="floor-title">Piso 5</div>
+                    <div id="salas-container">
+                        {% for item in piso5 %}
+                        <div class="sala">
+                            <div class="status-indicator inactivo"></div>
+                            <button type="button" class="btn-custom" data-toggle="modal" data-target="#modal-{{ item.sala }}">Sala {{ item.sala }}</button>
+
+                            <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        ...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Resto de salas -->
+                <div class="floor-container">
+                    <div class="floor-title">Resto de salas</div>
+                    <div id="salas-container">
+                        {% for piso in pisos %}
+                        <div class="floor-container">
+                            <div class="floor-title">Piso {{ piso.numero }}</div>
+                            <div id="salas-container">
+                                {% for item in piso.salas %}
+                                <div class="sala">
+                                    <div class="status-indicator activo"></div>
+                                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modal-{{ item.sala }}">
+                                        Sala {{ item.sala }}
+                                    </button>
+                                    <div class="modal fade" id="modal-{{ item.sala }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <!-- Modal Content -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Modal title</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Button trigger modal -->
+
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          ...
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

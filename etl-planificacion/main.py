@@ -6,9 +6,9 @@ from dao import *
 
 conn = pg.connect(
     host='localhost',
-    database='SCC',
+    database='scc_django',
     user='postgres',
-    password='admin',
+    password='root',
     port='5432'
 )
 

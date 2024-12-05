@@ -168,3 +168,20 @@ class EstadoAc(models.Model):
 
     class Meta:
         db_table = 'estado_ac'
+
+class TipoError(models.Model):
+    id = models.SmallAutoField(primary_key=True)
+    nombre = models.CharField(unique=True, max_length=50)
+
+    class Meta:
+        db_table = 'tipo_error'
+
+
+class SalaTipoError(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    sala = models.ForeignKey(Sala, models.DO_NOTHING, db_column='cod_sala', blank=True, null=True)
+    tipo_error = models.ForeignKey(TipoError, models.DO_NOTHING, db_column='tipo_error', blank=True, null=True)
+    fecha = models.DateTimeField()
+
+    class Meta:
+        db_table = 'sala_tipo_error'
