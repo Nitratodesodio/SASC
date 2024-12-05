@@ -8,19 +8,10 @@ from administracion.models import Controlador,Sala, SalaTipoError
 def test(request):
     # Obtener todas las salas
     todas_las_salas = Sala.objects.all()
-
     # Obtener todas las relaciones de errores con las salas
     errores = SalaTipoError.objects.select_related('sala', 'tipo_error').all()
-
-# Imprimir cada error con su sala y tipo de error
-    for error in errores:
-        print(f"Sala: {error.sala.sala}, Tipo de Error: {error.tipo_error.nombre}, Fecha: {error.fecha}")
-
-
-    # Crear un diccionario de salas por id para un acceso rápido
+    # Crear un diccionario de salas por id
     salas_dict = {sala.cod_sala: sala for sala in todas_las_salas}
-    
-
     # Inicializar la lista de errores para cada sala
     for sala in todas_las_salas:
         sala.errores = []

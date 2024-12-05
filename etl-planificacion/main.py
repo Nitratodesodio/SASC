@@ -8,7 +8,7 @@ conn = pg.connect(
     host='localhost',
     database='scc_django',
     user='postgres',
-    password='root',
+    password='0000000000',
     port='5432'
 )
 
