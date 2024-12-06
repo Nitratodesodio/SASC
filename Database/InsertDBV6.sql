@@ -76,16 +76,6 @@ INSERT INTO Cargo (nombre) VALUES
 ('Coordinación'),
 ('Desconocido');
 
-
-ALTER TABLE Tipo_Sensor
-ALTER COLUMN nombre TYPE VARCHAR(50);
-
-
-INSERT INTO Tipo_Sensor (nombre) VALUES
-('Sensor Presencia LD2410c'),
-('Sensor Temperatura y Humedad DHT22');
-
-
 INSERT INTO Tipo_ac (nombre) VALUES
 ('Cassete'),
 ('Desconocido');
@@ -102,8 +92,41 @@ INSERT INTO Orientacion (orientacion) VALUES
 ('Suroeste'),
 ('Desconocido');
 
+ALTER TABLE Tipo_Sensor
+ALTER COLUMN nombre TYPE VARCHAR(50);
+
+INSERT INTO sede (nombre, cod_comuna)
+VALUES (
+    'Santiago Sur',
+    (SELECT cod_comuna FROM comuna WHERE nombre = 'Macul')
+);
+
+
+INSERT INTO edificio (nombre, cod_sede)
+VALUES
+    ('A', (SELECT cod_sede FROM sede WHERE nombre = 'Santiago Sur')),
+    ('B', (SELECT cod_sede FROM sede WHERE nombre = 'Santiago Sur')),
+    ('C', (SELECT cod_sede FROM sede WHERE nombre = 'Santiago Sur')),
+    ('D', (SELECT cod_sede FROM sede WHERE nombre = 'Santiago Sur'));
+
+
+insert into marca_ac (nombre) values ('Toshiba');
+insert into marca_ac (nombre) values ('Haier');
+
+insert into modelo_ac (modelo) values ('MMU-AP0271H');
+insert into modelo_ac (modelo) values ('MMU-AP0361H');
+insert into modelo_ac (modelo) values ('MMC-AP0361H');
+
+INSERT INTO Tipo_Sensor (nombre) VALUES
+('Sensor Presencia LD2410c'),
+('Sensor Temperatura DHT22'),
+('Sensor Humedad DHT22');
+
+
 INSERT INTO controlador (mac) VALUES
-('A0:DD:6C:10:33:0C');
+('A0:DD:6C:10:33:0C'),
+('A0:DD:6C:0F:DF:B0');
+
 
 INSERT INTO Sensor (cod_tipo_sensor, cod_controlador)
 VALUES (
@@ -117,5 +140,66 @@ VALUES (
     (
     (SELECT cod_tipo_sensor FROM Tipo_sensor WHERE nombre = 'Sensor Humedad DHT22'),
     (SELECT cod_controlador FROM controlador WHERE mac = 'A0:DD:6C:10:33:0C')
+    );
+
+INSERT INTO Sensor (cod_tipo_sensor, cod_controlador)
+VALUES 
+    (
+        (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Presencia LD2410c'),
+        (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:0F:DF:B0')
+    ),
+    (
+        (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Temperatura DHT22'),
+        (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:0F:DF:B0')
+    ),
+    (
+        (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Humedad DHT22'),
+        (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:0F:DF:B0')
+    );
+
+
+INSERT INTO ac (cod_sala, cod_tipo, cod_marca, cod_modelo, btu)
+VALUES 
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '111'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0271H'),
+        36000
+    ),
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '112'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0271H'),
+        36000
+    ),
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '117'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0361H'),
+        36000
+    ),
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '118'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0361H'),
+        36000
+    ),
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '201'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0361H'),
+        36000
+    ),
+    (
+        (SELECT cod_sala FROM sala WHERE sala = '202'),
+        (SELECT cod_tipo FROM tipo_ac WHERE nombre = 'Cassete'),
+        (SELECT cod_marca FROM marca_ac WHERE nombre = 'Toshiba'),
+        (SELECT cod_modelo FROM modelo_ac WHERE modelo = 'MMU-AP0361H'),
+        36000
     );
 
