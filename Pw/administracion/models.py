@@ -88,7 +88,7 @@ class Sensor(models.Model):
 class Lectura(models.Model):
     cod_lectura = models.BigAutoField(primary_key=True)
     cod_sensor = models.ForeignKey(Sensor, models.DO_NOTHING, db_column='cod_sensor', blank=True, null=True)
-    valor = models.FloatField(blank=True, null=True)
+    valor = models.CharField(max_length=25)
     fecha_hora = models.DateTimeField()
 
     class Meta:
@@ -165,6 +165,7 @@ class EstadoAc(models.Model):
     cod_estado_ac = models.BigAutoField(primary_key=True)
     cod_estado = models.ForeignKey(Estado, models.DO_NOTHING, db_column='cod_estado', blank=True, null=True)
     cod_ac = models.ForeignKey(Ac, models.DO_NOTHING, db_column='cod_ac', blank=True, null=True)
+    fecha_hora = models.DateTimeField()
 
     class Meta:
         db_table = 'estado_ac'
