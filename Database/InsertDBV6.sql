@@ -130,7 +130,7 @@ INSERT INTO controlador (mac) VALUES
 
 INSERT INTO Sensor (cod_tipo_sensor, cod_controlador)
 VALUES (
-    (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Presencia LD2410'), -- Subconsulta para obtener el código de tipo de sensor
+    (SELECT cod_tipo_sensor FROM Tipo_Sensor WHERE nombre = 'Sensor Presencia LD2410c'), -- Subconsulta para obtener el código de tipo de sensor
     (SELECT cod_controlador FROM Controlador WHERE mac = 'A0:DD:6C:10:33:0C') -- Subconsulta para obtener el controlador relacionado con la MAC
 ),
 (
