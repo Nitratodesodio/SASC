@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'administracion',
     'autenticacion',
     'carga_planificacion',
-    'sensores_estado',
 ]
 
 
