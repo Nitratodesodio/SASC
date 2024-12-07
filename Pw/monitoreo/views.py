@@ -11,7 +11,7 @@ def dashboard(request):
 def informes(request):
     return render(request, 'informes.html')
 
-
+@login_required()
 def alertas(request):
    # Obtener la fecha de hoy
     hoy = date.today()
