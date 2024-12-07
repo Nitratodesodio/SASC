@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from administracion.models import Controlador,Sala, SalaTipoError, Lectura,Sensor,EstadoAc
-from datetime import date
+from datetime import date, datetime, timedelta
 
-# Create your views here.
 @login_required()
 def dashboard(request):
     return render(request, 'dashboard.html')
@@ -12,9 +11,9 @@ def dashboard(request):
 def informes(request):
     return render(request, 'informes.html')
 
-@login_required()
+
 def alertas(request):
-    # Obtener la fecha de hoy
+   # Obtener la fecha de hoy
     hoy = date.today()
 
     # Obtener todas las salas
@@ -22,12 +21,14 @@ def alertas(request):
 
     # Obtener las relaciones de errores con las salas, filtrando por fecha de hoy
     errores = SalaTipoError.objects.select_related('sala', 'tipo_error').filter(fecha__date=hoy)
-    # Crear un diccionario de salas por id
+
+    # Crear un diccionario de salas por ID
     salas_dict = {sala.cod_sala: sala for sala in todas_las_salas}
-    # Inicializar la lista de errores para cada sala
+
+    # Inicializar la lista de errores y el estado para cada sala
     for sala in todas_las_salas:
         sala.errores = []
-    
+        sala.estado = 'Inactivo'  # Estado predeterminado
 
     # Asociar errores a las salas correspondientes
     for error in errores:
@@ -35,6 +36,23 @@ def alertas(request):
         if sala_id in salas_dict:
             salas_dict[sala_id].errores.append(error.tipo_error.nombre)
 
+    # Verificar actividad de sensores
+    tiempo_limite = datetime.now() - timedelta(minutes=15)  # Sensores activos en los últimos 15 minutos
+    lecturas_recientes = Lectura.objects.filter(fecha_hora__gte=tiempo_limite).select_related('cod_sensor')
+    sensores_activos = {
+        lectura.cod_sensor.cod_controlador.cod_controlador
+        for lectura in lecturas_recientes
+        if lectura.cod_sensor and lectura.cod_sensor.cod_controlador
+    }
+
+
+    # Actualizar el estado de las salas según errores y sensores activos
+    for sala in todas_las_salas:
+        sala.estado = 'Inactivo'  # Estado predeterminado
+        if sala.errores:  # Si tiene errores
+            sala.estado = 'Con errores'
+        elif sala.cod_controlador and sala.cod_controlador.cod_controlador in sensores_activos:
+            sala.estado = 'Activo'
 
     # Crear un diccionario para agrupar las salas por piso
     pisos = {
@@ -64,9 +82,15 @@ def alertas(request):
         ),
     }
 
+    # Salas no clasificadas
+    salas_no_clasificadas = [
+        sala for sala in todas_las_salas if not sala.sala.isdigit()
+    ]
+
     # Pasar el contexto al template
     context = {
         'pisos': pisos,
+        'salas_no_clasificadas': salas_no_clasificadas,
         'errores': errores,  # Lista de errores para la barra de notificaciones
     }
     return render(request, 'alertas.html', context)
