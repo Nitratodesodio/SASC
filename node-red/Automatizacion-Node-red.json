@@ -1,10 +1,603 @@
 [
     {
+        "id": "c3f08c2c2abcacd0",
+        "type": "tab",
+        "label": "TODO",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "714264626a808ecb",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Sensores capturen datos de temperatura, humedad y presencia",
+        "info": "",
+        "x": 850,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "01165a5f157a238c",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Cuando las condiciones cambian, entonces se registra.",
+        "info": "",
+        "x": 500,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "ec815ceb53f23243",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Captura de datos desde 8:00PM hasta 10:00PM cada 60 segundos",
+        "info": "",
+        "x": 540,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "9dc24f29df72c030",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Cuando captura un dato de temperatura, humedad y presencia, entonces almacena ese dato con tiempo y la sala en la base de datos.",
+        "info": "",
+        "x": 750,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "02c8a4925d7bf329",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Iniciar Ciclo Semana",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 08 * * 1,2,3,4,5",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 460,
+        "y": 280,
+        "wires": [
+            [
+                "da41d3775bd4d73f"
+            ]
+        ]
+    },
+    {
+        "id": "da41d3775bd4d73f",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Iniciar Recolección de Datos",
+        "func": "// Configurar variable global para control de recolección\nglobal.set('dataCollectionActive', true);\n\nmsg.payload = {\n    status: 'Iniciando recolección de datos',\n    timestamp: new Date().toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 740,
+        "y": 260,
+        "wires": [
+            [
+                "845e243eddf18cce"
+            ]
+        ]
+    },
+    {
+        "id": "845e243eddf18cce",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log Inicio",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "568d4d928c1e8923",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Recibir Datos temperatura MQTT",
+        "topic": "+/temp",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 430,
+        "y": 340,
+        "wires": [
+            [
+                "0d9628eeda6bad98"
+            ]
+        ]
+    },
+    {
+        "id": "0d9628eeda6bad98",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Procesar Datos de Sensores",
+        "func": "// Verificar si la recolección de datos está activa\nconst dataCollectionActive = global.get('dataCollectionActive');\n\nif (dataCollectionActive) {\n    // Separar sala y tipo de dato del tópico\n    const [sala, tipodato] = msg.topic.split('/');\n    // Convertir el payload en el valor de la lectura\n    var valorLectura = parseFloat(msg.payload); // Convierte a número flotante\n    if (tipodato ==\"temp\"){\n        msg.params = [sala, valorLectura,\"Sensor Temperatura y Humedad DHT22\"];\n        return msg;\n    }\n    if (tipodato == \"pres\") {\n        msg.params = [sala, valorLectura, \"Sensor Presencia LD2410c\"];\n        return msg;\n    }\n        if (tipodato == \"hum\") {\n        msg.params = [sala, valorLectura, \"Sensor Temperatura y Humedad DHT22\"];\n        return msg;\n    }\n    \n}\n\n// Si la recolección no está activa, no procesar datos\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 400,
+        "wires": [
+            [
+                "93d54ece9cfc8ab6",
+                "8e8a2d07f48efa20"
+            ]
+        ]
+    },
+    {
+        "id": "93d54ece9cfc8ab6",
+        "type": "postgrestor",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "INSERT INTO lectura (cod_sensor, valor, fecha_hora)\nVALUES (\n    (\n        SELECT s.cod_sensor\n        FROM sensor s\n        INNER JOIN controlador c ON s.cod_controlador = c.cod_controlador\n        INNER JOIN tipo_sensor ts ON s.cod_tipo_sensor = ts.cod_tipo_sensor\n        WHERE c.mac = (\n            SELECT mac\n            FROM controlador\n            WHERE cod_controlador = (\n                SELECT cod_controlador\n                FROM sala\n                WHERE sala = $1 -- Parámetro 1: Número de sala\n            )\n        )\n        AND ts.nombre = $3 --Nombre tipo sensor\n        LIMIT 1\n    ),\n    $2, -- Parámetro 2: Valor de la lectura\n    NOW() -- Marca de tiempo actual\n);\n",
+        "postgresDB": "93ec092b8cc4bed5",
+        "output": true,
+        "outputs": 1,
+        "throwErrors": false,
+        "x": 990,
+        "y": 400,
+        "wires": [
+            [
+                "3e23e041661a30a9"
+            ]
+        ]
+    },
+    {
+        "id": "3e23e041661a30a9",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log insersion",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1170,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "30f481f727097bed",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Recibir Datos presencia MQTT",
+        "topic": "+/pres",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 430,
+        "y": 400,
+        "wires": [
+            [
+                "0d9628eeda6bad98"
+            ]
+        ]
+    },
+    {
+        "id": "03a64e24c6ab6879",
+        "type": "catch",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Es lo mismo que almacenar cada 60 seg?",
+        "scope": null,
+        "uncaught": false,
+        "x": 780,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "45916d42d1b8d3d4",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Iniciar Ciclo Sabado",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 08 * * 6",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 460,
+        "y": 240,
+        "wires": [
+            [
+                "da41d3775bd4d73f"
+            ]
+        ]
+    },
+    {
+        "id": "b8cecc09c69d26e8",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Recibir Datos humedad MQTT",
+        "topic": "+/hum",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 420,
+        "y": 460,
+        "wires": [
+            [
+                "0d9628eeda6bad98"
+            ]
+        ]
+    },
+    {
+        "id": "8e8a2d07f48efa20",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 26",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "639379c346ddb3f5",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Detener Recolección",
+        "func": "// Detener recolección de datos\nglobal.set('dataCollectionActive', false);\n\nmsg.payload = {\n    status: 'Deteniendo recolección de datos',\n    timestamp: new Date().toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 800,
+        "y": 540,
+        "wires": [
+            [
+                "bbe83e456c388160"
+            ]
+        ]
+    },
+    {
+        "id": "bbe83e456c388160",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log Detención",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1010,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "29df399889e56725",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Cerrar ciclo diario",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "30 22 * * 1,2,3,4,5",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 540,
+        "y": 560,
+        "wires": [
+            [
+                "639379c346ddb3f5"
+            ]
+        ]
+    },
+    {
+        "id": "d2924ec31bfde650",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Cerrar ciclo Sabado",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "30 22 * * 6",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 540,
+        "y": 520,
+        "wires": [
+            [
+                "639379c346ddb3f5"
+            ]
+        ]
+    },
+    {
+        "id": "928336c999dde9a5",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "topic": "config/+",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 430,
+        "y": 700,
+        "wires": [
+            [
+                "af96871315993c71"
+            ]
+        ]
+    },
+    {
+        "id": "12331409c43056b4",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 27",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "af96871315993c71",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "extraer mac",
+        "func": "// Obtener la dirección MAC de entrada\nvar macAddress = msg.payload;\n\n// Eliminar caracteres no válidos y convertir a mayúsculas\nmacAddress = macAddress.replace(/[^a-fA-F0-9]/g, '').toUpperCase();\n\n// Agregar los dos puntos para coincidir con el formato de la variable global\nif (macAddress.length === 12) {\n    macAddress = macAddress.match(/.{1,2}/g).join(':'); // Formato XX:XX:XX:XX:XX:XX\n} else {\n    node.warn(\"Dirección MAC inválida: \" + macAddress);\n    msg.payload = { error: \"Dirección MAC inválida\" };\n    return msg;\n}\n\n// Obtener la lista de MACs desde la variable global\nvar macList = global.get('mac') || [];\n\n// Buscar la dirección MAC en la lista\nvar entry = macList.find(e => e.mac === macAddress);\n\n// Verificar si se encontró una coincidencia\nif (entry) {\n    // Recuperar el número de sala asociado\n    var sala = entry.sala;\n\n    // Eliminar los dos puntos de la MAC para usarla como nombre del tópico\n    var topic = macAddress.replace(/:/g, ''); // XX:XX:XX:XX:XX:XX → XXXXXXXXXXXX\n\n    // Crear el mensaje a enviar\n    msg.topic = \"config/\"+topic; // Tópico sin los dos puntos\n    msg.payload = sala// Contenido del mensaje\n\n    \n    return {\n        payload: msg.payload,\n        topic: msg.topic,\n    };\n} else {\n    node.warn(\"MAC no encontrada en la lista: \" + macAddress);\n    msg.payload = { error: \"MAC no encontrada\" };\n    return msg;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 700,
+        "wires": [
+            [
+                "12331409c43056b4",
+                "af600d5a933f0c3b"
+            ]
+        ]
+    },
+    {
+        "id": "25fd40fdd16ba20c",
+        "type": "postgresql",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "SELECT \n    sala.sala,\n    sala.cod_controlador,\n    controlador.mac\nFROM \n    sala\nLEFT JOIN \n    controlador\nON \n    sala.cod_controlador = controlador.cod_controlador\nORDER BY \n    sala.sala ASC;\n",
+        "postgreSQLConfig": "11b52f1513578c16",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 610,
+        "y": 660,
+        "wires": [
+            [
+                "ae03f20636ba1c0e"
+            ]
+        ]
+    },
+    {
+        "id": "af600d5a933f0c3b",
+        "type": "mqtt out",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 1030,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "40878ae98747b2e5",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 08 * * 1,2,3,4,5,6",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 390,
+        "y": 660,
+        "wires": [
+            [
+                "25fd40fdd16ba20c"
+            ]
+        ]
+    },
+    {
+        "id": "ae03f20636ba1c0e",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "guardar macs",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('mac', msg.payload);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'mac'\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 660,
+        "wires": [
+            [
+                "707e3f552f90df67"
+            ]
+        ]
+    },
+    {
+        "id": "707e3f552f90df67",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 28",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1100,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "989724ee42102a63",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Asignar mac a cada placa",
+        "info": "",
+        "x": 770,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "71d26af7bfbc0fa2",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Cuando la clase está por finalizar y hay otra clase programada inmediatamente después, cuando la temperatura esta a mas de 23°C, entonces el sistema se enciende",
+        "info": "",
+        "x": 810,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "8d1d5a83fa728f62",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Consultar clases planificadas del dia",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "01 08 * * 1,2,3,4,5",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 430,
+        "y": 900,
+        "wires": [
+            [
+                "0f3a66a6dc6df201"
+            ]
+        ]
+    },
+    {
+        "id": "8d1044234738f229",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log clases",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload.rows",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 900,
+        "wires": []
+    },
+    {
         "id": "0f3a66a6dc6df201",
         "type": "postgrestor",
         "z": "c3f08c2c2abcacd0",
         "name": "",
-        "query": "SELECT \n    a.nombre AS nombre_asignatura,\n    c.fecha AS fecha_clase,\n    s.sala AS sala,\n    MIN(bh.hora_inicio) AS hora_inicio,\n    MAX(bh.hora_fin) AS hora_fin\nFROM clase c\nJOIN bloque_clase bc ON c.cod_clase = bc.cod_clase\nJOIN bloque_horario bh ON bc.bloque = bh.bloque\nJOIN docente_asignatura_seccion das ON c.cod_doc_asig_sec = das.cod_doc_asig_sec\nJOIN asignatura a ON das.cod_asig = a.cod_asig\nJOIN sala s ON c.cod_sala = s.cod_sala\nWHERE c.fecha = CURRENT_DATE\nGROUP BY a.nombre, c.fecha, s.sala\nORDER BY c.fecha, hora_inicio;",
+        "query": "SELECT \n    a.nombre AS nombre_asignatura,\n    c.fecha AS fecha_clase,\n    s.sala AS sala,\n    MIN(bh.hora_inicio) AS hora_inicio,\n    MAX(bh.hora_fin) AS hora_fin\nFROM clase c\nJOIN bloque_clase bc ON c.cod_clase = bc.cod_clase\nJOIN bloque_horario bh ON bc.bloque = bh.bloque\nJOIN docente_asignatura_seccion das ON c.cod_doc_asig_sec = das.cod_doc_asig_sec\nJOIN asignatura a ON das.cod_asig = a.cod_asig\nJOIN sala s ON c.cod_sala = s.cod_sala\nWHERE c.fecha = '28-09-2024'\nGROUP BY a.nombre, c.fecha, s.sala\nORDER BY c.fecha, hora_inicio;",
         "postgresDB": "93ec092b8cc4bed5",
         "output": true,
         "outputs": 1,
@@ -16,6 +609,539 @@
                 "660817d773e5c6a1"
             ]
         ]
+    },
+    {
+        "id": "660817d773e5c6a1",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Guardar clases",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('dbData', msg.payload.rows);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'dbData'\";\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 900,
+        "wires": [
+            [
+                "8d1044234738f229"
+            ]
+        ]
+    },
+    {
+        "id": "0efaddc29d88a470",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Obtener Clases del dia",
+        "info": "",
+        "x": 800,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "eed04a136cf83931",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Consultar todas las salas",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "01 08 * * 1,2,3,4,5",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 380,
+        "y": 960,
+        "wires": [
+            [
+                "374f40692349430c"
+            ]
+        ]
+    },
+    {
+        "id": "0c3e2802d0e236ba",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log clases",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload.rows",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1110,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "374f40692349430c",
+        "type": "postgrestor",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "SELECT sala\nFROM sala\nORDER BY sala;\n",
+        "postgresDB": "93ec092b8cc4bed5",
+        "output": true,
+        "outputs": 1,
+        "throwErrors": false,
+        "x": 710,
+        "y": 960,
+        "wires": [
+            [
+                "fd855508c095c5fd"
+            ]
+        ]
+    },
+    {
+        "id": "fd855508c095c5fd",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Guardar clases",
+        "func": "// Guardar el msg.payload en una variable global\nglobal.set('Dbsalas', msg.payload.rows);\n\n// Puedes agregar este mensaje si quieres verificar el almacenamiento\nmsg.info = \"Datos guardados globalmente en 'dbData'\";\nreturn msg;\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 960,
+        "wires": [
+            [
+                "0c3e2802d0e236ba"
+            ]
+        ]
+    },
+    {
+        "id": "44cac49e1ed61bc1",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Actualizar cada 1 minuto",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 470,
+        "y": 1100,
+        "wires": [
+            [
+                "b502b65e818df3ac"
+            ]
+        ]
+    },
+    {
+        "id": "b502b65e818df3ac",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Obtener hora",
+        "func": "let now = new Date();\nlet currentTimeMinutes = now.getHours() * 60 + now.getMinutes();\nglobal.set('currentTimeMinutes', currentTimeMinutes);\nmsg.payload=currentTimeMinutes\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 1100,
+        "wires": [
+            [
+                "b28cbc52e564edf3"
+            ]
+        ]
+    },
+    {
+        "id": "b28cbc52e564edf3",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Log hora",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "e0231f3386daa806",
+        "type": "inject",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Ejecutar Lógica de Control",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "2",
+        "topic": "",
+        "x": 350,
+        "y": 1240,
+        "wires": [
+            [
+                "ad2920d95ea5fb51"
+            ]
+        ]
+    },
+    {
+        "id": "ad2920d95ea5fb51",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Lógica de Control de Aire Acondicionado",
+        "func": "// Obtener el horario actual en minutos\nlet currentTimeMinutes = global.get('currentTimeMinutes') || 0;\n\n// Obtener los datos de las clases programadas y las salas\nlet dbData = global.get('dbData') || [];\nlet dbsalas = global.get('Dbsalas') || [];\n\n// Validación de datos\nif (!Array.isArray(dbData) || dbData.length === 0) {\n    node.warn('No hay datos de clases programadas en dbData.');\n    return;\n}\nif (!Array.isArray(dbsalas) || dbsalas.length === 0) {\n    node.warn('No hay salas definidas en Dbsalas.');\n    return;\n}\n\n// Función para convertir hora en formato \"HH:mm:ss\" o \"HH:mm\" a minutos\nfunction horaATotalMinutos(hora) {\n    try {\n        let partes = hora.split(':');\n        let horas = parseInt(partes[0]);\n        let minutos = parseInt(partes[1]);\n        return horas * 60 + minutos;\n    } catch (err) {\n        node.warn(Error al convertir la hora: ${hora});\n        return 0;\n    }\n}\n\n// Evaluar clases y condiciones para cada sala\ndbsalas.forEach(sala => {\n    let normalizedSala = typeof sala === 'object' ? sala.sala : sala.toLowerCase().trim();\n\n    // Filtrar las clases programadas para esta sala\n    let clasesSala = dbData.filter(clase => clase.sala.toLowerCase().trim() === normalizedSala);\n\n\n    // Ordenar las clases por hora de inicio\n    clasesSala.sort((a, b) => horaATotalMinutos(a.hora_inicio) - horaATotalMinutos(b.hora_inicio));\n\n    // Variables para seguimiento de la clase actual y la próxima\n    let claseActual = null;\n    let claseProxima = null;\n\n    // Identificar clase actual y próxima\n    clasesSala.forEach(clase => {\n        let inicioClase = horaATotalMinutos(clase.hora_inicio);\n        let finClase = horaATotalMinutos(clase.hora_fin);\n\n        if (currentTimeMinutes >= inicioClase && currentTimeMinutes < finClase) {\n            claseActual = clase;\n        } else if (currentTimeMinutes < inicioClase && !claseProxima) {\n            claseProxima = clase;\n        }\n    });\n\n    // Obtener estados actuales de la sala\n    let acState = global.get(acState_${normalizedSala}) || false;\n    let presence = global.get(presence_${normalizedSala}) || false;\n    let lastPresenceTime = global.get(lastPresenceTime_${normalizedSala}) || 0;\n    let temperature = global.get(temperature_${normalizedSala}) || 0;\n\n    // Condiciones para encender o apagar el aire acondicionado\n    let debeEncender = acState; // Inicialmente, mantenemos el estado actual\n\n    // Variables para condiciones\n    let encenderPorClaseProxima = false;\n    let encenderPorPresencia = false;\n    let encenderPorTemperatura = false;\n\n    // 1. Encender 45 minutos antes de una clase programada\n    if (claseProxima) {\n        let inicioClaseProxima = horaATotalMinutos(claseProxima.hora_inicio);\n        if (currentTimeMinutes >= inicioClaseProxima - 45 && currentTimeMinutes < inicioClaseProxima) {\n            encenderPorClaseProxima = true;\n            node.warn(Sala ${normalizedSala}: Encender aire 45 minutos antes de la clase programada.);\n\n        }\n    }\n\n    // 2. Encender si detecta presencia en sala no programada\n    if (!claseActual && presence) {\n        encenderPorPresencia = true;\n        node.warn(Sala ${normalizedSala}: Encender aire por detección de presencia en sala no programada.);\n    }\n\n    // 3. Mantener encendido durante la clase programada\n    if (claseActual) {\n        encenderPorClaseProxima = true;\n\n        let inicioClaseActual = horaATotalMinutos(claseActual.hora_inicio);\n        // Mantener encendido los primeros 15 minutos de clase aunque no haya presencia\n        if (currentTimeMinutes - inicioClaseActual <= 15) {\n            node.warn(Sala ${normalizedSala}: Mantener aire encendido durante los primeros 15 minutos de clase.);\n        } else if (!presence) {\n            // Si no hay presencia después de los primeros 15 minutos\n            // Verificar si hay otra clase inmediatamente después\n            let hayClaseDespues = false;\n            if (claseProxima) {\n                let finClaseActual = horaATotalMinutos(claseActual.hora_fin);\n                node.warn(finClaseActual);\n                let inicioClaseProxima = horaATotalMinutos(claseProxima.hora_inicio);\n                if (inicioClaseProxima === finClaseActual) {\n                    hayClaseDespues = true;\n                }\n            }\n\n            if (!hayClaseDespues) {\n                // Verificar si la próxima clase es en menos de 45 minutos\n                if (claseProxima) {\n                    let inicioClaseProxima = horaATotalMinutos(claseProxima.hora_inicio);\n                    if (inicioClaseProxima - currentTimeMinutes <= 45) {\n                        // Mantener el aire encendido\n                        node.warn(Sala ${normalizedSala}: Mantener aire encendido porque la próxima clase es en menos de 45 minutos.);\n                        encenderPorClaseProxima = true;\n                    } else {\n                        // Apagar el aire si no hay presencia y la próxima clase es en más de 45 minutos\n                        if (currentTimeMinutes - lastPresenceTime >= 10) {\n                            encenderPorClaseProxima = false;\n                            node.warn(Sala ${normalizedSala}: Apagar aire por falta de presencia y próxima clase en más de 45 minutos.);\n                        }\n                    }\n                } else {\n                    // No hay próxima clase programada\n                    if (currentTimeMinutes - lastPresenceTime >= 10) {\n                        encenderPorClaseProxima = false;\n                        node.warn(Sala ${normalizedSala}: Apagar aire por falta de presencia y no hay más clases hoy.);\n                    }\n                }\n            } else {\n                node.warn(Sala ${normalizedSala}: Mantener aire encendido porque hay clase inmediatamente después.);\n            }\n        }\n    }\n\n    // 4. Validación de temperatura\n   if (temperature < 20 || temperature > 24) {\n        encenderPorTemperatura = true;\n    }\n    // Decidir si se debe encender o apagar\n    if ((encenderPorClaseProxima || encenderPorPresencia) && encenderPorTemperatura) {\n        // Se cumplen las condiciones para encender\n        if (!acState) {\n            // Si el aire está apagado, encenderlo\n            global.set(acState_${normalizedSala }, true);\n            node.warn(Sala ${normalizedSala}: Enviando comando para ENCENDER el aire acondicionado.);\n            // Enviar comando MQTT para encender\n            node.send({\n                topic: ` ${normalizedSala}, payload: 'on' });\n        }\n    } else {\n    // No se cumplen las condiciones para mantener encendido\n    if (acState) {\n        // Si el aire está encendido, apagarlo\n        global.set(`acState_${normalizedSala}, false);\n        node.warn(Sala ${sala}: Enviando comando para APAGAR el aire acondicionado.);\n        // Enviar comando MQTT para apagar\n        node.send({ topic: ` ${normalizedSala}`, payload: 'off' });\n}\n    }\n});",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 1240,
+        "wires": [
+            [
+                "77d52a31c8b47063",
+                "55eec4b7ad9c620c"
+            ]
+        ]
+    },
+    {
+        "id": "77d52a31c8b47063",
+        "type": "mqtt out",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Enviar Comandos AC",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5322238dbb9749db",
+        "x": 1040,
+        "y": 1240,
+        "wires": []
+    },
+    {
+        "id": "55eec4b7ad9c620c",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 29",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "31aa4a1639efcc4e",
+        "type": "catch",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Sala 409",
+        "scope": null,
+        "uncaught": false,
+        "x": 1240,
+        "y": 1240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "723bdc38e2e9e21f",
+        "type": "comment",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Sistema evalúe la necesidad de cortar o suministrar la corriente eléctrica del aire acondicionado en función de la planificación y la presencia",
+        "info": "",
+        "x": 780,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "de36deb34bfa43e0",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Suscripción Temperatura y Presencia",
+        "topic": "+/temp",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 450,
+        "y": 1340,
+        "wires": [
+            [
+                "1fec248261eded81"
+            ]
+        ]
+    },
+    {
+        "id": "507f82dc1ac19011",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Suscripción Presencia",
+        "topic": "+/pres",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 440,
+        "y": 1420,
+        "wires": [
+            [
+                "1fec248261eded81"
+            ]
+        ]
+    },
+    {
+        "id": "7f658d352d4a4947",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 30",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 1340,
+        "wires": []
+    },
+    {
+        "id": "95b585e9f4664989",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Preparar correo",
+        "func": "let parts = msg.topic.split('/');\nlet sala = parts[0]; // tópico es \"sala/temp\" o \"sala/pres\" (sala representa el número de sala)\n\nif (msg.topic.endsWith('/temp')) {\n    // Actualizar la temperatura de la sala\n    let temperature = parseFloat(msg.payload);\n\n    // Obtener el estado previo de alerta para esta sala\n    let alertActive = global.get(alertActive_${sala}) || false;\n\n    let alertMessage = \"\"; // Inicializar el mensaje de alerta\n    let errorType = \"\";    // Inicializar el tipo de error\n\n    // Verificar si la temperatura está fuera del rango permitido\n    if (temperature > 30) {\n        alertMessage = \"Temperatura muy alta\";\n        errorType = \"Temperatura muy alta\";\n    } else if (temperature < 16) {\n        alertMessage = \"Temperatura muy baja\";\n        errorType = \"Temperatura muy baja\";\n    }\n\n    if (alertMessage) { // Si hay un mensaje de alerta\n        if (!alertActive) {\n            // Crear el mensaje para el correo\n            msg.to = \"nanoantillanca@gmail.com\";\n            msg.topic = \"Alerta SCC\";\n            msg.payload = \nEstimado/a,\n\nLe informamos que se ha detectado una anomalía en el sistema de climatización:\n\nSala: ${sala}\nTemperatura detectada: ${temperature}°C\nAlerta: ${alertMessage}\n\nLa temperatura se encuentra fuera del rango permitido, lo cual puede afectar el confort y la eficiencia energética del sistema.\n\nLe solicitamos por favor revisar la sala mencionada para verificar si hay algún factor externo o situación que pueda estar afectando el funcionamiento del sistema y tomar las medidas necesarias para evitar inconvenientes.\n\nAgradecemos su colaboración para mantener el sistema en óptimas condiciones.\n\nAtentamente,\nEquipo SCC\nSistema Centralizado de Climatización\n;\n            // Registrar que la alerta está activa para esta sala\n            global.set(alertActive_${sala}, true);\n            msg.params = [\n                sala,     // $1: Nombre de la sala\n                errorType // $2: Tipo de error\n            ];\n\n            return msg; // Enviar el mensaje para el correo\n        }\n    } else {\n        // Resetear el estado de alerta si la temperatura vuelve al rango permitido\n        global.set(alertActive_${sala}, false);\n    }\n}\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 1420,
+        "wires": [
+            [
+                "da922073b341de5c",
+                "e030c026fa6f32a1"
+            ]
+        ]
+    },
+    {
+        "id": "da922073b341de5c",
+        "type": "e-mail",
+        "z": "c3f08c2c2abcacd0",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "Email Node",
+        "x": 1270,
+        "y": 1420,
+        "wires": []
+    },
+    {
+        "id": "1fec248261eded81",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Actualizar Variables Globales",
+        "func": "let parts = msg.topic.split('/');\nlet sala = parts[0]; // tópico es \"sala/temp\" o \"sala/pres\" (sala representa el numero de sala)\n\nif (msg.topic.endsWith('/temp')) {\n    // Actualizar la temperatura de la sala\n    global.set(temperature_${sala}, parseFloat(msg.payload));\n    node.warn(Actualizada temperatura de sala ${sala}: ${msg.payload});\n} else if (msg.topic.endsWith('/pres')) {\n    // Actualizar la presencia en la sala\n    let presenceDetected = msg.payload !== 'No target'; // Ajuste realizado aquí\n\n    global.set(presence_${sala}, presenceDetected);\n\n    if (presenceDetected) {\n        // Actualizar el último tiempo en que se detectó presencia\n        let currentTimeMinutes = global.get('currentTimeMinutes');\n        global.set(lastPresenceTime_${sala}, currentTimeMinutes);\n    }\n    node.warn(Actualizada presencia de sala ${sala}: ${presenceDetected});\n}\n\n// Inicializar el estado del aire acondicionado si no existe\nif (global.get(acState_${sala}) === undefined) {\n    global.set(acState_${sala}, false); // false = apagado, true = encendido\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 1420,
+        "wires": [
+            [
+                "7f658d352d4a4947",
+                "95b585e9f4664989"
+            ]
+        ]
+    },
+    {
+        "id": "e030c026fa6f32a1",
+        "type": "postgrestor",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "INSERT INTO sala_tipo_error (cod_sala, tipo_error, fecha)\nVALUES (\n    (SELECT cod_sala FROM sala WHERE sala = $1),\n    (SELECT id FROM tipo_error WHERE nombre = $2),\n    NOW()\n         )",
+        "postgresDB": "e819e19a53d054ac",
+        "output": true,
+        "outputs": 1,
+        "throwErrors": false,
+        "x": 1010,
+        "y": 1560,
+        "wires": [
+            [
+                "ee57758b0db161e3"
+            ]
+        ]
+    },
+    {
+        "id": "ee57758b0db161e3",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 31",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 1560,
+        "wires": []
+    },
+    {
+        "id": "ef9a165fc4371149",
+        "type": "mqtt in",
+        "z": "c3f08c2c2abcacd0",
+        "name": "Suscripcion a errores",
+        "topic": "+/error",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5322238dbb9749db",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 420,
+        "y": 1600,
+        "wires": [
+            [
+                "a0b32bb3c9fe2e39"
+            ]
+        ]
+    },
+    {
+        "id": "a0b32bb3c9fe2e39",
+        "type": "function",
+        "z": "c3f08c2c2abcacd0",
+        "name": "function 2",
+        "func": "// Dividir el tópico para obtener el número de sala\nlet parts = msg.topic.split('/');\nlet sala = parts[0]; // Obtiene la sala del tópico, por ejemplo: \"101/error\"\n\n// Leer el mensaje de error\nlet errorMessage = msg.payload;\n\n// Configurar los parámetros para la consulta SQL\nmsg.params = [\n    sala,          // $1: Número de sala\n    errorMessage   // $2: Mensaje de error\n];\n\n\n\n// Asignar la consulta al campo msg.topic para el nodo PostgreSQL\nmsg.topic = msg.query;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 1700,
+        "wires": [
+            [
+                "329425320d7c4414"
+            ]
+        ]
+    },
+    {
+        "id": "329425320d7c4414",
+        "type": "postgrestor",
+        "z": "c3f08c2c2abcacd0",
+        "name": "",
+        "query": "\nINSERT INTO sala_tipo_error (cod_sala, tipo_error, fecha)\n    VALUES (\n        (SELECT cod_sala FROM sala WHERE sala = $1),\n        (SELECT id FROM tipo_error WHERE nombre = $2),\n        NOW()\n    )\n",
+        "postgresDB": "e819e19a53d054ac",
+        "output": true,
+        "outputs": 1,
+        "throwErrors": false,
+        "x": 790,
+        "y": 1700,
+        "wires": [
+            [
+                "7a48708077ab9d85"
+            ]
+        ]
+    },
+    {
+        "id": "7a48708077ab9d85",
+        "type": "debug",
+        "z": "c3f08c2c2abcacd0",
+        "name": "debug 32",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 1700,
+        "wires": []
+    },
+    {
+        "id": "5322238dbb9749db",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "z3ef5889.ala.us-east-1.emqxsl.com",
+        "port": "8883",
+        "tls": "0b89bbcfcf8700fb",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
     },
     {
         "id": "93ec092b8cc4bed5",
@@ -43,5 +1169,71 @@
         "userFieldType": "str",
         "password": "0000000000",
         "passwordFieldType": "str"
+    },
+    {
+        "id": "11b52f1513578c16",
+        "type": "postgreSQLConfig",
+        "name": "",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "SCC",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": "10",
+        "maxFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "0000000000",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "e819e19a53d054ac",
+        "type": "postgresDB",
+        "name": "SCC_DJANGO",
+        "throwErrors": true,
+        "throwErrorsFieldType": "bool",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "scc_django",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "max": "10",
+        "maxFieldType": "num",
+        "min": "1",
+        "minFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "0000000000",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "0b89bbcfcf8700fb",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "emqxsl-ca.crt",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
     }
 ]
