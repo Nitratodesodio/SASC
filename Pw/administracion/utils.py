@@ -4,13 +4,6 @@ from pathlib import PurePath
 from carga_planificacion.dto import *
 from carga_planificacion.dao import *
 
-conn = pg.connect(
-    host='localhost',
-    database='scc_django',
-    user='postgres',
-    password='root',
-    port='5432'
-)
 
 
 def get_data(archivo, hoja, headers, skiprows, usecols):
@@ -19,6 +12,13 @@ def get_data(archivo, hoja, headers, skiprows, usecols):
         return df
 
 def cargar_datos(archivo):
+    conn = pg.connect(
+        host='localhost',
+        database='scc_django',
+        user='postgres',
+        password='root',
+        port='5432'
+    )
     """Parámetros hoja principal"""
     planificacion = 0
     headers_pln = 0

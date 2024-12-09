@@ -3,14 +3,6 @@ import pandas as pd
 from pathlib import PurePath
 from .dao import *
 
-conn = pg.connect(
-    host='localhost',
-    database='scc_django',
-    user='postgres',
-    password='root',
-    port='5432'
-)
-
 
 def get_data(archivo, hoja, headers, skiprows, usecols):
     with pd.ExcelFile(archivo, engine='openpyxl') as xls:
@@ -18,6 +10,13 @@ def get_data(archivo, hoja, headers, skiprows, usecols):
         return df
 
 def cargar_clases(archivo):
+    conn = pg.connect(
+        host='localhost',
+        database='scc_django',
+        user='postgres',
+        password='root',
+        port='5432'
+    )
     #Parámetros hoja principal
     planificacion = 0
     headers_pln = 0
