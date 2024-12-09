@@ -17,7 +17,7 @@ def get_data(archivo, hoja, headers, skiprows, usecols):
         df = pd.read_excel(xls,sheet_name=hoja, header=headers, skiprows=skiprows, usecols=usecols)
         return df
 
-def carga_clases(archivo):
+def cargar_clases(archivo):
     #Parámetros hoja principal
     planificacion = 0
     headers_pln = 0
