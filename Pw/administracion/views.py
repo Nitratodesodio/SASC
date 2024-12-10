@@ -9,7 +9,7 @@ def carga_data(request):
         archivo = request.FILES['file']
         try:
             cargar_datos(archivo)
-            context = {'message': 'Datos cargados correctamente'}
+            context = {'msje': 'Datos cargados correctamente'}
         except:
-            context = {'message': 'Error al cargar los datos. El archivo debe ser un archivo de Excel y con el formato generado por la intranet de coordinación docente.'}
+            context = {'msje': 'Error al cargar los datos. El archivo debe ser un archivo de Excel y con el formato generado por la intranet de coordinación docente.'}
     return render(request, 'carga_datos.html', context)
