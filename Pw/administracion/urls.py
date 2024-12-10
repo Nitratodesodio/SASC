@@ -1,8 +1,8 @@
 from django.urls import path
-# from .views import registrar_usuario
-#
-# urlpatterns = [
-#
-#     path('signin/',registrar_usuario, name="registrar"),
-#
-# ]
+from .views import carga_data
+
+urlpatterns = [
+
+    path('carga_data/',carga_data, name="carga_data"),
+
+]
