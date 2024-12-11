@@ -12,7 +12,7 @@ def get_data(archivo, hoja, headers, skiprows, usecols):
 def cargar_clases(archivo):
     conn = pg.connect(
         host='34.201.62.144',
-        database='postgres',
+        database='scc',
         user='postgres',
         password='postgres',
         port='5432'
