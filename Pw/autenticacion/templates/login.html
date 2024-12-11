@@ -2,13 +2,17 @@
 
 {% block content %}
 <main class="container">
-    <h1>Login</h1>
-    <form action="{% url 'inicio_sesion' %}" method="post">
-        {% csrf_token %}
-        <h3 class="text-danger">{{ error }}</h3>
-        <input type="email" name="email" placeholder="Correo electrónico">
-        <input type="password" name="password" placeholder="Contraseña">
-        <button type="submit">Login</button>
-    </form>
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-xl-4 p-4 rounded change-colors">
+            <h1>Login</h1>
+            <form action="{% url 'inicio_sesion' %}" method="post">
+                {% csrf_token %}
+                <h3 class="text-danger">{{ error }}</h3>
+                <input class="form-control" type="email" name="email" placeholder="Correo electrónico">
+                <input class="form-control" type="password" name="password" placeholder="Contraseña">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
 </main>
 {% endblock %}
