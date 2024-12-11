@@ -1,17 +1,19 @@
 from pathlib import Path
 import os
-# import environ
-#
-# env = environ.Env()
-# environ.Env.read_env()
+import environ
+
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+env.read_env(BASE_DIR / '.env')
 
-SECRET_KEY = "e&+op@%rwihx+p$++u+&$fyozu%44r#9&y9c)2=vn-g1-b%pye"
+SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = False
+DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['3.93.152.162']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
 
 
 # Application definition
@@ -71,11 +73,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '34.201.62.144',
-        'PORT': '5432',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
