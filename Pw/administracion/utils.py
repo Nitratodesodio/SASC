@@ -13,10 +13,10 @@ def get_data(archivo, hoja, headers, skiprows, usecols):
 
 def cargar_datos(archivo):
     conn = pg.connect(
-        host='localhost',
-        database='scc_django',
+        host='34.201.62.144',
+        database='postgres',
         user='postgres',
-        password='root',
+        password='postgres',
         port='5432'
     )
     """Parámetros hoja principal"""
